@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weekly Review</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,600;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;1,300&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background: transparent;
+  }
+
+  body {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    padding: 12px 0;
+  }
+
+  .widget {
+    background: linear-gradient(135deg, #eef0fb 0%, #e8e4f5 50%, #dde8f8 100%);
+    border-radius: 20px;
+    padding: 22px 28px;
+    text-align: center;
+    position: relative;
+    overflow: visible;
+    border: 1px solid rgba(180, 180, 230, 0.3);
+    box-shadow: 0 8px 32px rgba(140, 140, 200, 0.12), inset 0 1px 0 rgba(255,255,255,0.8);
+    min-width: 220px;
+    max-width: 320px;
+    width: 100%;
+  }
+
+  .widget::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(220,180,240,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .sparkles {
+    position: absolute;
+    font-size: 8px;
+    color: rgba(196, 160, 200, 0.4);
+  }
+  .sparkles.s1 { top: 14px; left: 18px; }
+  .sparkles.s2 { top: 14px; right: 18px; }
+
+  .title {
+    font-family: 'Lora', serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    color: #6a5a8a;
+    margin-bottom: 16px;
+  }
+
+  .icon {
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+    flex-shrink: 0;
+    vertical-align: middle;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .row-label {
+    font-family: 'Lora', serif;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: #6a5a8a;
+    text-align: left;
+    flex: 1;
+  }
+
+  .counter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .count-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid rgba(196,160,200,0.4);
+    background: rgba(255,255,255,0.6);
+    color: #7a5c8a;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    line-height: 1;
+  }
+
+  .count-btn:hover {
+    background: rgba(196,160,200,0.2);
+    transform: scale(1.1);
+  }
+
+  .count-val {
+    font-family: 'Lora', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #7a5c8a;
+    min-width: 28px;
+    text-align: center;
+  }
+
+  .divider {
+    height: 1px;
+    background: rgba(196,160,200,0.2);
+    margin: 12px 0;
+  }
+
+  .section-label {
+    font-family: 'Lora', serif;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: #6a5a8a;
+    margin-bottom: 8px;
+    text-align: left;
+  }
+
+  .chips {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+
+  .chip {
+    font-family: 'Lora', serif;
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    padding: 5px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    border: 1px solid rgba(180,180,230,0.3);
+    background: rgba(255,255,255,0.4);
+    color: #a0a0c0;
+    transition: all 0.2s;
+  }
+
+  .chip.active-low {
+    background: rgba(255, 180, 180, 0.25);
+    border-color: rgba(255,160,160,0.5);
+    color: #c07070;
+  }
+
+  .chip.active-mid {
+    background: rgba(255, 210, 150, 0.25);
+    border-color: rgba(255,190,100,0.5);
+    color: #b08040;
+  }
+
+  .chip.active-high {
+    background: rgba(160, 210, 160, 0.3);
+    border-color: rgba(120,190,120,0.5);
+    color: #507050;
+  }
+
+  .chip.active-mood-rough {
+    background: rgba(200, 160, 220, 0.3);
+    border-color: rgba(180,140,200,0.5);
+    color: #7a5c8a;
+  }
+
+  .chip.active-mood-okay {
+    background: rgba(180, 210, 240, 0.3);
+    border-color: rgba(140,180,220,0.5);
+    color: #4a70a0;
+  }
+
+  .chip.active-mood-great {
+    background: rgba(200, 240, 200, 0.3);
+    border-color: rgba(140,210,140,0.5);
+    color: #407040;
+  }
+
+  .reset-btn {
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: #a0a0c0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    margin-top: 4px;
+    transition: color 0.15s;
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .reset-btn.confirming {
+    color: #c07070;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  .save-btn {
+    font-family: 'Lora', serif;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    border: 1px solid rgba(122, 92, 138, 0.4);
+    background: linear-gradient(135deg, rgba(122,92,138,0.15), rgba(140,160,220,0.15));
+    color: #6a5a8a;
+    transition: all 0.2s;
+  }
+
+  .save-btn:hover {
+    background: rgba(122,92,138,0.25);
+    transform: translateY(-1px);
+  }
+
+  .history-btn {
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    padding: 8px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    border: 1px solid rgba(180,180,230,0.3);
+    background: rgba(255,255,255,0.4);
+    color: #a0a0c0;
+    transition: all 0.2s;
+  }
+
+  .history-item {
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    font-size: 10px;
+    color: #7a5c8a;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(196,160,200,0.15);
+    text-align: left;
+    line-height: 1.6;
+  }
+
+  .history-item strong {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .encouragement {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 12px;
+    color: #6a5a8a;
+    min-height: 18px;
+    margin-bottom: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="widget">
+  <span class="sparkles s1">✦</span>
+  <span class="sparkles s2">✦</span>
+
+
+  <!-- Tasks -->
+  <div class="row">
+    <div class="row-label">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="3" width="18" height="18" rx="3" fill="#7a5c8a" opacity="0.15" stroke="#7a5c8a" stroke-width="1.5"/>
+        <path d="M7 12.5l3.5 3.5 6.5-7" stroke="#7a5c8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Tasks completed
+    </div>
+    <div class="counter">
+      <button class="count-btn" onclick="change('tasks', -1)">−</button>
+      <div class="count-val" id="tasks-val">0</div>
+      <button class="count-btn" onclick="change('tasks', 1)">+</button>
+    </div>
+  </div>
+
+  <!-- Assignments -->
+  <div class="row">
+    <div class="row-label">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="3" width="18" height="18" rx="3" fill="#7a5c8a" opacity="0.15" stroke="#7a5c8a" stroke-width="1.5"/>
+        <path d="M12 5C10.5 5 8.5 5.4 7 6.5v9c1.5-.8 3.5-1.2 5-1.2s3.5.4 5 1.2v-9C15.5 5.4 13.5 5 12 5z" fill="#7a5c8a" opacity="0.3" stroke="#7a5c8a" stroke-width="1.2" stroke-linejoin="round"/>
+        <line x1="12" y1="5" x2="12" y2="14.3" stroke="#7a5c8a" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      Assignments done
+    </div>
+    <div class="counter">
+      <button class="count-btn" onclick="change('assignments', -1)">−</button>
+      <div class="count-val" id="assignments-val">0</div>
+      <button class="count-btn" onclick="change('assignments', 1)">+</button>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Habit Score -->
+  <div class="section-label">▸ Habit score</div>
+  <div class="chips">
+    <div class="chip" id="habit-low" onclick="selectHabit('low')">Just Starting</div>
+    <div class="chip" id="habit-mid" onclick="selectHabit('mid')">Building Up</div>
+    <div class="chip" id="habit-high" onclick="selectHabit('high')">Excellent! ✦</div>
+  </div>
+  <div class="encouragement" id="habit-msg"></div>
+
+  <div class="divider"></div>
+
+  <!-- Mood -->
+  <div class="section-label">▸ Overall mood</div>
+  <div class="chips">
+    <div class="chip" id="mood-rough" onclick="selectMood('rough')">Rough</div>
+    <div class="chip" id="mood-okay" onclick="selectMood('okay')">Okay</div>
+    <div class="chip" id="mood-great" onclick="selectMood('great')">Great ✦</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div style="display:flex; gap:8px; justify-content:center;">
+    <button class="save-btn" onclick="saveWeek()">✦ Save Week</button>
+    <button class="history-btn" onclick="toggleHistory()">↓ History</button>
+  </div>
+
+  <div id="history-section" style="display:none; margin-top:12px;">
+    <div class="divider"></div>
+    <div class="section-label" style="text-align:center;">Past Weeks</div>
+    <div id="history-list" style="max-height: 200px; overflow-y: auto;"></div>
+  </div>
+
+  <div class="divider"></div>
+  <button class="reset-btn" id="reset-btn" onclick="handleResetClick()">↺ Reset for new week</button>
+
+</div>
+
+<script>
+  const counts = { tasks: 0, assignments: 0 };
+  let hasUnsavedChanges = false;
+
+  function change(type, delta) {
+    counts[type] = Math.max(0, counts[type] + delta);
+    document.getElementById(type + '-val').textContent = counts[type];
+    hasUnsavedChanges = true;
+    save();
+  }
+
+  const habitMsgs = {
+    low: "Every streak starts with day one. Keep going ✦",
+    mid: "You're building something real. Don't stop now ✦",
+    high: "You showed up every day. That's everything ✦"
+  };
+
+  function selectHabit(level) {
+    ['low','mid','high'].forEach(l => {
+      document.getElementById('habit-' + l).className = 'chip';
+    });
+    document.getElementById('habit-' + level).classList.add(
+      level === 'low' ? 'active-low' : level === 'mid' ? 'active-mid' : 'active-high'
+    );
+    document.getElementById('habit-msg').textContent = habitMsgs[level];
+    localStorage.setItem('wr_habit', level);
+    hasUnsavedChanges = true;
+  }
+
+  function selectMood(mood) {
+    ['rough','okay','great'].forEach(m => {
+      document.getElementById('mood-' + m).className = 'chip';
+    });
+    document.getElementById('mood-' + mood).classList.add('active-mood-' + mood);
+    localStorage.setItem('wr_mood', mood);
+    hasUnsavedChanges = true;
+  }
+
+  function save() {
+    localStorage.setItem('wr_tasks', counts.tasks);
+    localStorage.setItem('wr_assignments', counts.assignments);
+  }
+
+  function getWeekRange() {
+    const now = new Date();
+    const day = now.getDay(); // 0 = Sunday
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - day);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+
+    const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const year = weekEnd.getFullYear();
+    const key = weekStart.toISOString().slice(0, 10); // stable YYYY-MM-DD, safe for dedup
+
+    return {
+      key,
+      label: `${fmt(weekStart)} – ${fmt(weekEnd)}, ${year}`
+    };
+  }
+
+  function saveWeek() {
+    const { key, label } = getWeekRange();
+    const habit = localStorage.getItem('wr_habit') || '—';
+    const mood = localStorage.getItem('wr_mood') || '—';
+
+    const entry = {
+      weekKey: key,
+      date: label,
+      tasks: counts.tasks,
+      assignments: counts.assignments,
+      habit: habit,
+      mood: mood
+    };
+
+    let history = JSON.parse(localStorage.getItem('wr_history') || '[]');
+    // Duplicate prevention: remove existing entry for the same week (by stable key)
+    history = history.filter(e => e.weekKey !== key);
+    history.unshift(entry);
+    // Max 8 entries
+    if (history.length > 8) history = history.slice(0, 8);
+    localStorage.setItem('wr_history', JSON.stringify(history));
+
+    hasUnsavedChanges = false;
+
+    const btn = document.querySelector('.save-btn');
+    btn.textContent = '✓ Saved!';
+    setTimeout(() => btn.textContent = '✦ Save Week', 1500);
+
+    renderHistory();
+  }
+
+  function toggleHistory() {
+    const section = document.getElementById('history-section');
+    section.style.display = section.style.display === 'none' ? 'block' : 'none';
+    renderHistory();
+  }
+
+  const historyIcons = {
+    tasks: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px; margin-right:3px;"><rect x="3" y="3" width="18" height="18" rx="3" fill="#7a5c8a" opacity="0.15" stroke="#7a5c8a" stroke-width="1.8"/><path d="M7 12.5l3.5 3.5 6.5-7" stroke="#7a5c8a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    assignments: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px; margin-right:3px;"><path d="M12 5C10.5 5 8.5 5.4 7 6.5v9c1.5-.8 3.5-1.2 5-1.2s3.5.4 5 1.2v-9C15.5 5.4 13.5 5 12 5z" fill="#7a5c8a" opacity="0.3" stroke="#7a5c8a" stroke-width="1.4" stroke-linejoin="round"/><line x1="12" y1="5" x2="12" y2="14.3" stroke="#7a5c8a" stroke-width="1.4" stroke-linecap="round"/></svg>`,
+    habit: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px; margin-right:3px;"><path d="M12 2c-1.5 3.5-5 6-5 10.5A5 5 0 0012 18a5 5 0 005-5.5c0-1.8-.8-3.2-1.8-4.3.2 1.7-.9 2.6-1.7 2.1C14 8 13 5 12 2z" fill="#7a5c8a" opacity="0.25" stroke="#7a5c8a" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/></svg>`,
+    mood: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px; margin-right:3px;"><circle cx="12" cy="12" r="8" fill="#7a5c8a" opacity="0.15" stroke="#7a5c8a" stroke-width="1.4"/><circle cx="9" cy="10" r="1" fill="#7a5c8a"/><circle cx="15" cy="10" r="1" fill="#7a5c8a"/><path d="M8.5 14c1 1.5 6 1.5 7 0" stroke="#7a5c8a" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>`
+  };
+
+  let confirmingDeleteIndex = null;
+  let deleteConfirmTimeout = null;
+
+  function renderHistory() {
+    const history = JSON.parse(localStorage.getItem('wr_history') || '[]');
+    const list = document.getElementById('history-list');
+    if (history.length === 0) {
+      list.innerHTML = '<div class="history-item" style="color:#c4a0c8; font-style:italic;">No saved weeks yet.</div>';
+      return;
+    }
+    list.innerHTML = history.map((e, i) => `
+      <div class="history-item">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <strong>${e.date}</strong>
+          <button onclick="handleDeleteClick(${i})" style="background:none;border:none;cursor:pointer;font-size:${confirmingDeleteIndex === i ? '9px' : '9px'};color:${confirmingDeleteIndex === i ? '#c07070' : '#c4a0c8'};font-family:'Jost',sans-serif;font-weight:${confirmingDeleteIndex === i ? '600' : '400'};padding:0;margin-left:8px;line-height:1.3;flex-shrink:0;white-space:nowrap;" title="Delete">${confirmingDeleteIndex === i ? 'Sure?' : '✕'}</button>
+        </div>
+        ${historyIcons.tasks}${e.tasks} tasks · ${historyIcons.assignments}${e.assignments} assignments<br>
+        ${historyIcons.habit}Habit: ${e.habit} · ${historyIcons.mood}Mood: ${e.mood}
+      </div>
+    `).join('');
+  }
+
+  function handleDeleteClick(index) {
+    if (confirmingDeleteIndex === index) {
+      clearTimeout(deleteConfirmTimeout);
+      confirmingDeleteIndex = null;
+      deleteEntry(index);
+    } else {
+      confirmingDeleteIndex = index;
+      renderHistory();
+      clearTimeout(deleteConfirmTimeout);
+      deleteConfirmTimeout = setTimeout(() => {
+        confirmingDeleteIndex = null;
+        renderHistory();
+      }, 3000);
+    }
+  }
+
+  function deleteEntry(index) {
+    const history = JSON.parse(localStorage.getItem('wr_history') || '[]');
+    history.splice(index, 1);
+    localStorage.setItem('wr_history', JSON.stringify(history));
+    renderHistory();
+  }
+
+  let resetConfirmTimeout = null;
+
+  function handleResetClick() {
+    const btn = document.getElementById('reset-btn');
+
+    if (btn.dataset.confirming === 'true') {
+      clearTimeout(resetConfirmTimeout);
+      resetAll();
+      btn.dataset.confirming = 'false';
+      btn.classList.remove('confirming');
+      btn.textContent = '↺ Reset for new week';
+    } else {
+      btn.dataset.confirming = 'true';
+      btn.classList.add('confirming');
+      btn.textContent = hasUnsavedChanges
+        ? "You haven't saved this week — tap again to reset anyway"
+        : 'Tap again to confirm';
+
+      resetConfirmTimeout = setTimeout(() => {
+        btn.dataset.confirming = 'false';
+        btn.classList.remove('confirming');
+        btn.textContent = '↺ Reset for new week';
+      }, 4000);
+    }
+  }
+
+  function resetAll() {
+    counts.tasks = 0;
+    counts.assignments = 0;
+    document.getElementById('tasks-val').textContent = 0;
+    document.getElementById('assignments-val').textContent = 0;
+    ['low','mid','high'].forEach(l => document.getElementById('habit-' + l).className = 'chip');
+    ['rough','okay','great'].forEach(m => document.getElementById('mood-' + m).className = 'chip');
+    document.getElementById('habit-msg').textContent = '';
+
+    // Only remove this widget's own keys — never touch localStorage.clear(),
+    // since other widgets on the same domain share this same storage bucket.
+    localStorage.removeItem('wr_tasks');
+    localStorage.removeItem('wr_assignments');
+    localStorage.removeItem('wr_habit');
+    localStorage.removeItem('wr_mood');
+    // wr_history is intentionally preserved — reset should only clear this week's inputs.
+
+    hasUnsavedChanges = false;
+  }
+
+  // Restore saved state
+  counts.tasks = parseInt(localStorage.getItem('wr_tasks') || 0);
+  counts.assignments = parseInt(localStorage.getItem('wr_assignments') || 0);
+  document.getElementById('tasks-val').textContent = counts.tasks;
+  document.getElementById('assignments-val').textContent = counts.assignments;
+  const savedHabit = localStorage.getItem('wr_habit');
+  const savedMood = localStorage.getItem('wr_mood');
+  if (savedHabit) selectHabit(savedHabit);
+  if (savedMood) selectMood(savedMood);
+</script>
+</body>
+</html>

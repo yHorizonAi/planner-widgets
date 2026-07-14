@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Countdown</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,600;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;1,300&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  .widget {
+    background: linear-gradient(135deg, #fdf0f5 0%, #f5eef8 50%, #eef0fb 100%);
+    border-radius: 20px;
+    padding: 24px 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(210, 180, 220, 0.3);
+    box-shadow: 0 8px 32px rgba(180, 140, 200, 0.12), inset 0 1px 0 rgba(255,255,255,0.8);
+    min-width: 220px;
+    max-width: 320px;
+    width: 100%;
+  }
+
+  .widget::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(220,180,240,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .widget::after {
+    content: '';
+    position: absolute;
+    bottom: -30px; left: -30px;
+    width: 100px; height: 100px;
+    background: radial-gradient(circle, rgba(180,200,240,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .sparkles {
+    position: absolute;
+    font-size: 8px;
+    color: rgba(196, 160, 200, 0.4);
+  }
+  .sparkles.s1 { top: 14px; left: 18px; }
+  .sparkles.s2 { top: 14px; right: 18px; }
+  .sparkles.s3 { bottom: 14px; left: 18px; }
+  .sparkles.s4 { bottom: 14px; right: 18px; }
+
+  .label {
+    font-family: 'Jost', sans-serif;
+    font-weight: 200;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #c4a0c8;
+    margin-bottom: 6px;
+  }
+
+  .event-name {
+    font-family: 'Lora', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #7a5c8a;
+    margin-bottom: 14px;
+    min-height: 24px;
+  }
+
+  .event-name.placeholder {
+    font-style: italic;
+    font-weight: 400;
+    color: #c4a0c8;
+    font-size: 13px;
+  }
+
+  .days {
+    font-family: 'Lora', serif;
+    font-size: 56px;
+    font-weight: 700;
+    color: #7a5c8a;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .days-label {
+    font-family: 'Jost', sans-serif;
+    font-weight: 200;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #c4a0c8;
+    margin-top: 4px;
+    margin-bottom: 16px;
+  }
+
+  .breakdown {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .unit-val {
+    font-family: 'Lora', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #9a7aaa;
+  }
+
+  .unit-label {
+    font-family: 'Jost', sans-serif;
+    font-weight: 200;
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #c4a0c8;
+    margin-top: 2px;
+  }
+
+  .separator {
+    font-size: 18px;
+    color: rgba(196,160,200,0.3);
+    align-self: center;
+    padding-bottom: 12px;
+  }
+
+  .input-area {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+  }
+
+  input[type="text"], input[type="date"] {
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: #7a5c8a;
+    background: rgba(255,255,255,0.6);
+    border: 1px solid rgba(196,160,200,0.3);
+    border-radius: 10px;
+    padding: 7px 12px;
+    width: 100%;
+    outline: none;
+    text-align: center;
+  }
+
+  input[type="text"]::placeholder {
+    color: #c4a0c8;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0.4;
+    cursor: pointer;
+  }
+
+  .btn {
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 7px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    border: 1px solid rgba(196,160,200,0.4);
+    background: linear-gradient(135deg, rgba(196,160,200,0.2), rgba(180,200,240,0.15));
+    color: #7a5c8a;
+    transition: all 0.2s;
+    width: 100%;
+  }
+
+  .btn:hover {
+    background: rgba(196,160,200,0.25);
+    transform: translateY(-1px);
+  }
+
+  .done-msg {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: #7a5c8a;
+    padding: 10px 0;
+  }
+
+  .reset-btn {
+    font-family: 'Jost', sans-serif;
+    font-weight: 200;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #c4a0c8;
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-top: 8px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="widget">
+  <span class="sparkles s1">✦</span>
+  <span class="sparkles s2">✦</span>
+  <span class="sparkles s3">✦</span>
+  <span class="sparkles s4">✦</span>
+
+  <!-- Setup screen -->
+  <div id="setup-screen">
+    <div class="label">Countdown to</div>
+    <div class="event-name placeholder">your next big moment</div>
+    <div class="input-area">
+      <input type="text" id="event-input" placeholder="e.g. Final Exam, Summer Break..." maxlength="30">
+      <input type="date" id="date-input">
+      <button class="btn" onclick="startCountdown()">Set Countdown ✦</button>
+    </div>
+  </div>
+
+  <!-- Countdown screen -->
+  <div id="countdown-screen" class="hidden">
+    <div class="label">Countdown to</div>
+    <div class="event-name" id="display-name"></div>
+    <div class="days" id="days-display">0</div>
+    <div class="days-label">days left</div>
+    <div class="breakdown">
+      <div class="unit">
+        <div class="unit-val" id="hours-display">0</div>
+        <div class="unit-label">Hours</div>
+      </div>
+      <div class="separator">·</div>
+      <div class="unit">
+        <div class="unit-val" id="mins-display">0</div>
+        <div class="unit-label">Mins</div>
+      </div>
+      <div class="separator">·</div>
+      <div class="unit">
+        <div class="unit-val" id="secs-display">0</div>
+        <div class="unit-label">Secs</div>
+      </div>
+    </div>
+    <button class="reset-btn" onclick="resetCountdown()">Change event</button>
+  </div>
+
+  <!-- Done screen -->
+  <div id="done-screen" class="hidden">
+    <div class="label">Today is the day</div>
+    <div class="done-msg" id="done-name"></div>
+    <div style="font-size:32px; margin: 10px 0;">🎉</div>
+    <div class="label">You made it ✦</div>
+    <button class="reset-btn" onclick="resetCountdown()">Set new countdown</button>
+  </div>
+</div>
+
+<script>
+  let targetDate = null;
+  let eventName = '';
+  let ticker = null;
+
+  function startCountdown() {
+    const nameVal = document.getElementById('event-input').value.trim();
+    const dateVal = document.getElementById('date-input').value;
+    if (!nameVal || !dateVal) return;
+
+    eventName = nameVal;
+    targetDate = new Date(dateVal + 'T23:59:59');
+
+    localStorage.setItem('countdown_name', eventName);
+    localStorage.setItem('countdown_date', dateVal);
+
+    showCountdown();
+  }
+
+  function showCountdown() {
+    document.getElementById('setup-screen').classList.add('hidden');
+    document.getElementById('done-screen').classList.add('hidden');
+    document.getElementById('countdown-screen').classList.remove('hidden');
+    document.getElementById('display-name').textContent = eventName;
+    update();
+    if (ticker) clearInterval(ticker);
+    ticker = setInterval(update, 1000);
+  }
+
+  function update() {
+    const now = new Date();
+    const diff = targetDate - now;
+
+    if (diff <= 0) {
+      clearInterval(ticker);
+      document.getElementById('countdown-screen').classList.add('hidden');
+      document.getElementById('done-screen').classList.remove('hidden');
+      document.getElementById('done-name').textContent = eventName;
+      return;
+    }
+
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+
+    document.getElementById('days-display').textContent = days;
+    document.getElementById('hours-display').textContent = String(hours).padStart(2,'0');
+    document.getElementById('mins-display').textContent = String(mins).padStart(2,'0');
+    document.getElementById('secs-display').textContent = String(secs).padStart(2,'0');
+  }
+
+  function resetCountdown() {
+    clearInterval(ticker);
+    targetDate = null;
+    localStorage.removeItem('countdown_name');
+    localStorage.removeItem('countdown_date');
+    document.getElementById('event-input').value = '';
+    document.getElementById('date-input').value = '';
+    document.getElementById('countdown-screen').classList.add('hidden');
+    document.getElementById('done-screen').classList.add('hidden');
+    document.getElementById('setup-screen').classList.remove('hidden');
+  }
+
+  // Restore saved countdown
+  const savedName = localStorage.getItem('countdown_name');
+  const savedDate = localStorage.getItem('countdown_date');
+  if (savedName && savedDate) {
+    eventName = savedName;
+    targetDate = new Date(savedDate + 'T23:59:59');
+    showCountdown();
+  }
+</script>
+</body>
+</html>

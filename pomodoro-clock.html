@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus Timer</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&family=Jost:wght@200;300;400;500&family=Inter:wght@600;700;800&family=Gabarito:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  :root {
+    /* Dynamic — these change with the selected palette. Drive only: buttons, timer digits, progress shape, and settings-panel selection chips. */
+    --grad1: #ba9ec7;
+    --grad2: #8ba3de;
+    --text-strong: #7a5c8a;
+    --btn-border: rgba(196, 160, 200, 0.4);
+    --track-color: rgba(196, 160, 200, 0.18);
+    --tab-active-bg: rgba(196, 160, 200, 0.15);
+    --tab-active-border: rgba(196, 160, 200, 0.35);
+
+    /* Fixed — always the first palette (lavender), regardless of user color choice. */
+    --fixed-soft: #c4a0c8;
+    --fixed-strong: #7a5c8a;
+    --fixed-tab-active-bg: rgba(196, 160, 200, 0.15);
+    --fixed-tab-active-border: rgba(196, 160, 200, 0.35);
+    --fixed-dot-done: #c4a0c8;
+    --fixed-dot-idle: rgba(196, 160, 200, 0.25);
+  }
+
+  .widget {
+    background: linear-gradient(135deg, #fdf0f5 0%, #f5eef8 50%, #eef0fb 100%);
+    border-radius: 20px;
+    padding: 22px 28px 24px 28px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(210, 180, 220, 0.3);
+    box-shadow: 0 8px 32px rgba(180, 140, 200, 0.12), inset 0 1px 0 rgba(255,255,255,0.8);
+    min-width: 250px;
+    max-width: 340px;
+    width: 100%;
+  }
+
+  .widget::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(220,180,240,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .widget::after {
+    content: '';
+    position: absolute;
+    bottom: -30px; left: -30px;
+    width: 100px; height: 100px;
+    background: radial-gradient(circle, rgba(180,200,240,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .sparkles {
+    position: absolute;
+    font-size: 8px;
+    color: rgba(196, 160, 200, 0.4);
+    z-index: 1;
+  }
+  .sparkles.s1 { top: 14px; left: 18px; }
+  .sparkles.s3 { bottom: 14px; left: 18px; }
+
+  /* ---------- Mini clock, top-right corner ---------- */
+  .mini-clock {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    font-family: 'Gabarito', sans-serif;
+    font-weight: 500;
+    font-size: 11px;
+    color: var(--fixed-soft);
+    letter-spacing: 0.01em;
+    z-index: 2;
+    line-height: 1;
+    user-select: none;
+  }
+
+  .mini-clock .colon {
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+  }
+
+  /* ---------- Header row ---------- */
+  .mode-tabs {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 6px 0 16px 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .tab {
+    font-family: 'Jost', sans-serif;
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--fixed-soft);
+    padding: 7px 11px;
+    border-radius: 20px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    background: none;
+  }
+
+  .tab.active {
+    background: var(--fixed-tab-active-bg);
+    border-color: var(--fixed-tab-active-border);
+    color: var(--fixed-strong);
+  }
+
+  .mode-label {
+    font-family: 'Jost', sans-serif;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #554061;
+    opacity: 0.6;
+    margin-bottom: 10px;
+  }
+
+  .mode-label.running {
+    animation: mode-pulse 3.2s ease-in-out infinite;
+  }
+
+  @keyframes mode-pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.55; }
+  }
+
+  /* ---------- Progress shapes ---------- */
+  .progress-container {
+    position: relative;
+    margin: 0 auto 14px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .progress-container.shape-circle { width: 150px; height: 150px; }
+  .progress-container.shape-half   { width: 190px; height: 110px; }
+  .progress-container.shape-bar    { width: 100%; flex-direction: column; gap: 10px; padding: 6px 4px 0 4px; }
+
+  .ring-svg { width: 100%; height: 100%; }
+
+  .ring-track {
+    fill: none;
+    stroke: var(--track-color);
+    stroke-linecap: round;
+  }
+
+  .ring-fill {
+    fill: none;
+    stroke: url(#ring-grad);
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.4s ease-out;
+  }
+
+  .timer-overlay {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+  }
+
+  .shape-circle .timer-overlay { top: 50%; transform: translate(-50%, -50%); }
+  .shape-half .timer-overlay   { bottom: 4px; }
+
+  .timer {
+    font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 34px;
+    font-weight: 700;
+    color: var(--text-strong);
+    line-height: 1;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .shape-bar .timer {
+    font-size: 38px;
+    position: static;
+    transform: none;
+  }
+
+  .bar-track {
+    width: 100%;
+    height: 12px;
+    border-radius: 20px;
+    background: var(--track-color);
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 20px;
+    background: linear-gradient(90deg, var(--grad1), var(--grad2));
+    opacity: 0.55;
+    transition: width 0.4s ease-out;
+  }
+
+  .session-dots {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .sdot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--fixed-dot-idle);
+    transition: background 0.3s;
+  }
+
+  .sdot.done { background: var(--fixed-dot-done); }
+
+  .session-count {
+    font-family: 'Jost', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: #554061;
+    opacity: 0.6;
+    margin-bottom: 16px;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 6px;
+  }
+
+  .btn {
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    border: 1px solid var(--btn-border);
+    transition: all 0.2s;
+    background: none;
+    color: var(--text-strong);
+  }
+
+  .btn.primary {
+    background: linear-gradient(135deg, var(--grad1), var(--grad2));
+    background-size: 200% 200%;
+    color: #fff;
+    border-color: transparent;
+    opacity: 0.9;
+  }
+
+  .btn:hover { transform: translateY(-1px); }
+
+  .settings-toggle {
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--fixed-soft);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    margin-top: 2px;
+  }
+
+  /* ---------- Settings panel ---------- */
+  .settings-panel {
+    display: none;
+    text-align: left;
+    position: relative;
+    z-index: 1;
+  }
+
+  .settings-panel.open { display: block; }
+  .main-view.hidden { display: none; }
+
+  .settings-section-title {
+    font-family: 'Lora', serif;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: var(--text-strong);
+    margin: 12px 0 8px 0;
+  }
+
+  .settings-section-title:first-child { margin-top: 0; }
+
+  .shape-options, .palette-options {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .shape-option {
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    padding: 6px 12px;
+    border-radius: 14px;
+    border: 1px solid var(--btn-border);
+    background: rgba(255,255,255,0.5);
+    color: var(--text-strong);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .shape-option.selected {
+    background: var(--tab-active-bg);
+    border-color: var(--tab-active-border);
+    font-weight: 500;
+  }
+
+  .palette-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .palette-swatch.selected {
+    border-color: #6a5a8a;
+    transform: scale(1.1);
+  }
+
+  .duration-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    color: var(--text-strong);
+  }
+
+  .stepper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .step-btn {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 1px solid var(--btn-border);
+    background: rgba(255,255,255,0.6);
+    color: var(--text-strong);
+    cursor: pointer;
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+  }
+
+  .step-btn:hover { background: var(--tab-active-bg); }
+
+  .step-val {
+    font-family: 'Lora', serif;
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--text-strong);
+    min-width: 34px;
+    text-align: center;
+  }
+
+  .settings-done {
+    width: 100%;
+    margin-top: 14px;
+    padding: 9px;
+    border-radius: 16px;
+    border: none;
+    background: linear-gradient(135deg, var(--grad1), var(--grad2));
+    color: #fff;
+    font-family: 'Jost', sans-serif;
+    font-weight: 400;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="widget">
+  <span class="sparkles s1">✦</span>
+  <span class="sparkles s3">✦</span>
+
+  <div class="mini-clock" id="mini-clock"></div>
+
+  <div class="main-view" id="main-view">
+    <div class="mode-tabs">
+      <button class="tab active" data-mode="focus" onclick="setMode('focus')">Focus</button>
+      <button class="tab" data-mode="short" onclick="setMode('short')">Short Break</button>
+      <button class="tab" data-mode="long" onclick="setMode('long')">Long Break</button>
+    </div>
+
+    <div class="mode-label" id="mode-label">Focus Time</div>
+
+    <div class="progress-container" id="progress-container"></div>
+
+    <div class="session-dots" id="session-dots"></div>
+    <div class="session-count" id="session-count">Session 1 of 4</div>
+
+    <div class="controls">
+      <button class="btn primary" id="start-btn" onclick="toggleTimer()">Start</button>
+      <button class="btn" onclick="resetTimer()">Reset</button>
+    </div>
+
+    <button class="settings-toggle" onclick="openSettings()">⚙ Customize</button>
+  </div>
+
+  <div class="settings-panel" id="settings-panel">
+    <div class="settings-section-title">Progress style</div>
+    <div class="shape-options" id="shape-options">
+      <div class="shape-option" data-shape="circle" onclick="setShape('circle')">Circle</div>
+      <div class="shape-option" data-shape="half" onclick="setShape('half')">Half-circle</div>
+      <div class="shape-option" data-shape="bar" onclick="setShape('bar')">Bar</div>
+    </div>
+
+    <div class="settings-section-title">Color</div>
+    <div class="palette-options" id="palette-options"></div>
+
+    <div class="settings-section-title">Durations & sessions</div>
+    <div class="duration-row">
+      <span>Focus (min)</span>
+      <div class="stepper">
+        <button class="step-btn" onclick="adjustDuration('focus', -1)">−</button>
+        <span class="step-val" id="val-focus">25</span>
+        <button class="step-btn" onclick="adjustDuration('focus', 1)">+</button>
+      </div>
+    </div>
+    <div class="duration-row">
+      <span>Short break (min)</span>
+      <div class="stepper">
+        <button class="step-btn" onclick="adjustDuration('short', -1)">−</button>
+        <span class="step-val" id="val-short">5</span>
+        <button class="step-btn" onclick="adjustDuration('short', 1)">+</button>
+      </div>
+    </div>
+    <div class="duration-row">
+      <span>Long break (min)</span>
+      <div class="stepper">
+        <button class="step-btn" onclick="adjustDuration('long', -1)">−</button>
+        <span class="step-val" id="val-long">15</span>
+        <button class="step-btn" onclick="adjustDuration('long', 1)">+</button>
+      </div>
+    </div>
+    <div class="duration-row">
+      <span>Sessions before long break</span>
+      <div class="stepper">
+        <button class="step-btn" onclick="adjustDuration('sessionsTarget', -1)">−</button>
+        <span class="step-val" id="val-sessionsTarget">4</span>
+        <button class="step-btn" onclick="adjustDuration('sessionsTarget', 1)">+</button>
+      </div>
+    </div>
+
+    <button class="settings-done" onclick="closeSettings()">Done</button>
+  </div>
+</div>
+
+<script>
+  /* ---------------- Palettes ---------------- */
+  const palettes = {
+    lavender: { grad1: '#ba9ec7', grad2: '#8ba3de', textStrong: '#7a5c8a', textSoft: '#c4a0c8' },
+    rose:     { grad1: '#e08ea0', grad2: '#f2b6c4', textStrong: '#a35a72', textSoft: '#dba0b0' },
+    sage:     { grad1: '#8ec9a0', grad2: '#b8e0c4', textStrong: '#4f8a63', textSoft: '#a3d1b0' },
+    sky:      { grad1: '#8bb8de', grad2: '#a8d4f0', textStrong: '#4a7ba8', textSoft: '#a8cbe8' },
+    peach:    { grad1: '#e8a87c', grad2: '#f2c9a0', textStrong: '#b8703f', textSoft: '#edc09a' },
+    slate:    { grad1: '#9098b0', grad2: '#b0b8d0', textStrong: '#5a6180', textSoft: '#b4bad0' },
+    coral:    { grad1: '#f08a72', grad2: '#f7b199', textStrong: '#c1533a', textSoft: '#f4b8a8' },
+    mint:     { grad1: '#6fc2b0', grad2: '#9edbcb', textStrong: '#2f7d6c', textSoft: '#a8ddd0' },
+    amber:    { grad1: '#e0b25c', grad2: '#f0cf8a', textStrong: '#a67c25', textSoft: '#f0dba8' },
+  };
+
+  function hexToRgba(hex, alpha) {
+    const r = parseInt(hex.slice(1,3), 16);
+    const g = parseInt(hex.slice(3,5), 16);
+    const b = parseInt(hex.slice(5,7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  function applyPalette(name) {
+    const p = palettes[name] || palettes.lavender;
+    const root = document.documentElement.style;
+    root.setProperty('--grad1', p.grad1);
+    root.setProperty('--grad2', p.grad2);
+    root.setProperty('--text-strong', p.textStrong);
+    root.setProperty('--btn-border', hexToRgba(p.grad1, 0.4));
+    root.setProperty('--track-color', hexToRgba(p.grad1, 0.18));
+    root.setProperty('--tab-active-bg', hexToRgba(p.grad1, 0.15));
+    root.setProperty('--tab-active-border', hexToRgba(p.grad1, 0.35));
+
+    const gradEl = document.getElementById('ring-grad-stop1');
+    const gradEl2 = document.getElementById('ring-grad-stop2');
+    if (gradEl) gradEl.setAttribute('stop-color', p.grad1);
+    if (gradEl2) gradEl2.setAttribute('stop-color', p.grad2);
+  }
+
+  function renderPaletteSwatches() {
+    const container = document.getElementById('palette-options');
+    container.innerHTML = '';
+    Object.keys(palettes).forEach(name => {
+      const p = palettes[name];
+      const sw = document.createElement('div');
+      sw.className = 'palette-swatch' + (name === settings.palette ? ' selected' : '');
+      sw.style.background = `linear-gradient(135deg, ${p.grad1}, ${p.grad2})`;
+      sw.title = name;
+      sw.onclick = () => setPalette(name);
+      container.appendChild(sw);
+    });
+  }
+
+  function setPalette(name) {
+    settings.palette = name;
+    applyPalette(name);
+    renderPaletteSwatches();
+    saveSettings();
+  }
+
+  /* ---------------- Settings state ---------------- */
+  const defaultSettings = {
+    shape: 'circle',
+    palette: 'lavender',
+    focus: 25,
+    short: 5,
+    long: 15,
+    sessionsTarget: 4
+  };
+
+  let settings = { ...defaultSettings };
+
+  function loadSettings() {
+    const saved = localStorage.getItem('pomodoro_settings');
+    if (saved) {
+      settings = { ...defaultSettings, ...JSON.parse(saved) };
+    }
+  }
+
+  function saveSettings() {
+    localStorage.setItem('pomodoro_settings', JSON.stringify(settings));
+  }
+
+  function adjustDuration(key, delta) {
+    const bounds = {
+      focus: [1, 90],
+      short: [1, 30],
+      long: [1, 60],
+      sessionsTarget: [2, 8]
+    };
+    const [min, max] = bounds[key];
+    settings[key] = Math.min(max, Math.max(min, settings[key] + delta));
+    document.getElementById('val-' + key).textContent = settings[key];
+    saveSettings();
+  }
+
+  function setShape(shape) {
+    settings.shape = shape;
+    document.querySelectorAll('.shape-option').forEach(el => {
+      el.classList.toggle('selected', el.dataset.shape === shape);
+    });
+    renderProgressShape();
+    updateProgressVisual();
+    saveSettings();
+  }
+
+  let settingsSnapshot = {};
+
+  function openSettings() {
+    settingsSnapshot = { focus: settings.focus, short: settings.short, long: settings.long };
+    document.getElementById('main-view').classList.add('hidden');
+    document.getElementById('settings-panel').classList.add('open');
+  }
+
+  function closeSettings() {
+    document.getElementById('settings-panel').classList.remove('open');
+    document.getElementById('main-view').classList.remove('hidden');
+
+    // Only reset the in-progress countdown if the duration for the CURRENTLY
+    // ACTIVE mode was actually changed. Palette, shape, session count, or the
+    // durations of the *other* two modes should never disturb a paused focus
+    // (or break) block — losing progress here is exactly what we want to avoid.
+    const currentModeDurationChanged = settings[current] !== settingsSnapshot[current];
+
+    if (currentModeDurationChanged) {
+      sessionTotal = modes[current].seconds;
+      timeLeft = sessionTotal;
+      updateDisplay();
+      updateProgressVisual();
+    }
+
+    rebuildSessionDots();
+  }
+
+  /* ---------------- Progress shapes ---------------- */
+  function renderProgressShape() {
+    const container = document.getElementById('progress-container');
+    container.className = 'progress-container shape-' + settings.shape;
+    container.innerHTML = '';
+
+    if (settings.shape === 'circle') {
+      container.innerHTML = `
+        <svg class="ring-svg" viewBox="0 0 120 120">
+          <defs>
+            <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop id="ring-grad-stop1" offset="0%" stop-color="#ba9ec7" />
+              <stop id="ring-grad-stop2" offset="100%" stop-color="#8ba3de" />
+            </linearGradient>
+          </defs>
+          <circle class="ring-track" cx="60" cy="60" r="52" stroke-width="9" />
+          <circle class="ring-fill" id="ring-fill" cx="60" cy="60" r="52" stroke-width="9"
+            transform="rotate(-90 60 60)" />
+        </svg>
+        <div class="timer-overlay">
+          <div class="timer" id="timer">25:00</div>
+        </div>
+      `;
+    } else if (settings.shape === 'half') {
+      container.innerHTML = `
+        <svg class="ring-svg" viewBox="0 0 120 70">
+          <defs>
+            <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop id="ring-grad-stop1" offset="0%" stop-color="#ba9ec7" />
+              <stop id="ring-grad-stop2" offset="100%" stop-color="#8ba3de" />
+            </linearGradient>
+          </defs>
+          <path class="ring-track" d="M20 60 A40 40 0 0 1 100 60" stroke-width="9" />
+          <path class="ring-fill" id="ring-fill" d="M20 60 A40 40 0 0 1 100 60" stroke-width="9" />
+        </svg>
+        <div class="timer-overlay">
+          <div class="timer" id="timer">25:00</div>
+        </div>
+      `;
+    } else {
+      container.innerHTML = `
+        <div class="timer" id="timer">25:00</div>
+        <div class="bar-track"><div class="bar-fill" id="bar-fill"></div></div>
+      `;
+    }
+
+    applyPalette(settings.palette);
+  }
+
+  function updateProgressVisual() {
+    const pct = sessionTotal > 0 ? Math.max(0, Math.min(1, timeLeft / sessionTotal)) : 0;
+
+    if (settings.shape === 'circle') {
+      const r = 52;
+      const c = 2 * Math.PI * r;
+      const fill = document.getElementById('ring-fill');
+      if (fill) {
+        fill.style.strokeDasharray = c;
+        fill.style.strokeDashoffset = c * (1 - pct);
+      }
+    } else if (settings.shape === 'half') {
+      const arcLength = Math.PI * 40;
+      const fill = document.getElementById('ring-fill');
+      if (fill) {
+        fill.style.strokeDasharray = arcLength;
+        fill.style.strokeDashoffset = arcLength * (1 - pct);
+      }
+    } else {
+      const fill = document.getElementById('bar-fill');
+      if (fill) fill.style.width = (pct * 100) + '%';
+    }
+  }
+
+  /* ---------------- Timer logic ---------------- */
+  const modes = {
+    focus: { label: 'Focus Time', get seconds() { return settings.focus * 60; } },
+    short: { label: 'Short Break', get seconds() { return settings.short * 60; } },
+    long:  { label: 'Long Break',  get seconds() { return settings.long * 60; } },
+  };
+
+  let current = 'focus';
+  let timeLeft = 25 * 60;
+  let sessionTotal = 25 * 60;
+  let running = false;
+  let interval = null;
+  let sessions = 0;
+
+  function setMode(mode) {
+    clearInterval(interval);
+    running = false;
+    current = mode;
+    sessionTotal = modes[mode].seconds;
+    timeLeft = sessionTotal;
+    document.getElementById('mode-label').textContent = modes[mode].label;
+    document.getElementById('start-btn').textContent = 'Start';
+    document.getElementById('mode-label').classList.remove('running');
+    document.querySelectorAll('.tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.mode === mode);
+    });
+    updateDisplay();
+    updateProgressVisual();
+  }
+
+  function setModeLabelRunning(isRunning) {
+    const label = document.getElementById('mode-label');
+    if (label) label.classList.toggle('running', isRunning);
+  }
+
+  function toggleTimer() {
+    if (running) {
+      clearInterval(interval);
+      running = false;
+      document.getElementById('start-btn').textContent = 'Resume';
+      setModeLabelRunning(false);
+    } else {
+      // Safety net: if the timer is being started from a finished (0) state,
+      // load a fresh full duration first so it doesn't instantly re-trigger completion.
+      if (timeLeft <= 0) {
+        timeLeft = sessionTotal;
+        updateDisplay();
+        updateProgressVisual();
+      }
+
+      // If a full cycle just completed (all dots filled), starting again begins a new cycle.
+      if (sessions >= settings.sessionsTarget) {
+        sessions = 0;
+        rebuildSessionDots();
+      }
+
+      running = true;
+      document.getElementById('start-btn').textContent = 'Pause';
+      setModeLabelRunning(true);
+      interval = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+          clearInterval(interval);
+          running = false;
+          document.getElementById('start-btn').textContent = 'Start';
+          setModeLabelRunning(false);
+          if (current === 'focus') {
+            sessions = Math.min(sessions + 1, settings.sessionsTarget);
+            updateDots();
+            document.getElementById('session-count').textContent =
+              sessions < settings.sessionsTarget
+                ? `Session ${sessions + 1} of ${settings.sessionsTarget}`
+                : 'Great work! Take a long break ✦';
+          }
+          timeLeft = 0;
+          updateDisplay();
+          updateProgressVisual();
+          return;
+        }
+        updateDisplay();
+        updateProgressVisual();
+      }, 1000);
+    }
+  }
+
+  function resetTimer() {
+    clearInterval(interval);
+    running = false;
+    sessionTotal = modes[current].seconds;
+    timeLeft = sessionTotal;
+    document.getElementById('start-btn').textContent = 'Start';
+    setModeLabelRunning(false);
+    updateDisplay();
+    updateProgressVisual();
+  }
+
+  function updateDisplay() {
+    const m = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+    const s = String(timeLeft % 60).padStart(2, '0');
+    const el = document.getElementById('timer');
+    if (el) el.textContent = `${m}:${s}`;
+  }
+
+  function rebuildSessionDots() {
+    const container = document.getElementById('session-dots');
+    container.innerHTML = '';
+    for (let i = 0; i < settings.sessionsTarget; i++) {
+      const d = document.createElement('div');
+      d.className = 'sdot' + (i < sessions ? ' done' : '');
+      d.id = 'sd' + i;
+      container.appendChild(d);
+    }
+    document.getElementById('session-count').textContent =
+      sessions < settings.sessionsTarget
+        ? `Session ${sessions + 1} of ${settings.sessionsTarget}`
+        : 'Great work! Take a long break ✦';
+  }
+
+  function updateDots() {
+    for (let i = 0; i < settings.sessionsTarget; i++) {
+      const el = document.getElementById('sd' + i);
+      if (el) el.classList.toggle('done', i < sessions);
+    }
+  }
+
+  /* ---------------- Mini clock ---------------- */
+  function updateMiniClock() {
+    const now = new Date();
+    let h = now.getHours();
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    document.getElementById('mini-clock').innerHTML = `${h}<span class="colon">:</span>${m} <span style="font-size:9px; opacity:0.85;">${ampm}</span>`;
+  }
+
+  /* ---------------- Init ---------------- */
+  function init() {
+    loadSettings();
+    applyPalette(settings.palette);
+    renderPaletteSwatches();
+
+    document.querySelectorAll('.shape-option').forEach(el => {
+      el.classList.toggle('selected', el.dataset.shape === settings.shape);
+    });
+
+    document.getElementById('val-focus').textContent = settings.focus;
+    document.getElementById('val-short').textContent = settings.short;
+    document.getElementById('val-long').textContent = settings.long;
+    document.getElementById('val-sessionsTarget').textContent = settings.sessionsTarget;
+
+    renderProgressShape();
+    sessionTotal = modes.focus.seconds;
+    timeLeft = sessionTotal;
+    updateDisplay();
+    updateProgressVisual();
+    rebuildSessionDots();
+
+    updateMiniClock();
+    setInterval(updateMiniClock, 1000);
+  }
+
+  init();
+</script>
+</body>
+</html>
