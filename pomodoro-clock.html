@@ -33,6 +33,7 @@
 
     /* Fixed — always the first palette (lavender), regardless of user color choice. */
     --fixed-soft: #c4a0c8;
+    --fixed-tab-inactive: #9573a3;
     --fixed-strong: #7a5c8a;
     --fixed-tab-active-bg: rgba(196, 160, 200, 0.15);
     --fixed-tab-active-border: rgba(196, 160, 200, 0.35);
@@ -121,10 +122,10 @@
   .tab {
     font-family: 'Jost', sans-serif;
     font-weight: 600;
-    font-size: 10px;
-    letter-spacing: 0.04em;
+    font-size: 11px;
+    letter-spacing: 0.03em;
     text-transform: uppercase;
-    color: var(--fixed-soft);
+    color: var(--fixed-tab-inactive);
     padding: 7px 11px;
     border-radius: 20px;
     cursor: pointer;
@@ -507,12 +508,21 @@
 <script>
   /* ---------------- Palettes ---------------- */
   const palettes = {
-    lavender: { grad1: '#ba9ec7', grad2: '#8ba3de', textStrong: '#7a5c8a', textSoft: '#c4a0c8' },
+    /* --- Most-loved pastel picks (feminine-leaning) --- */
     rose:     { grad1: '#e08ea0', grad2: '#f2b6c4', textStrong: '#a35a72', textSoft: '#dba0b0' },
-    sage:     { grad1: '#8ec9a0', grad2: '#b8e0c4', textStrong: '#4f8a63', textSoft: '#a3d1b0' },
-    sky:      { grad1: '#8bb8de', grad2: '#a8d4f0', textStrong: '#4a7ba8', textSoft: '#a8cbe8' },
+    lavender: { grad1: '#ba9ec7', grad2: '#8ba3de', textStrong: '#7a5c8a', textSoft: '#c4a0c8' },
+    lilac:    { grad1: '#c9a0e0', grad2: '#ddc0ef', textStrong: '#8a5aa8', textSoft: '#d8bce8' },
     peach:    { grad1: '#e8a87c', grad2: '#f2c9a0', textStrong: '#b8703f', textSoft: '#edc09a' },
+    butter:   { grad1: '#e8cf7c', grad2: '#f2e2a0', textStrong: '#a68a2f', textSoft: '#f0e0a8' },
+    sky:      { grad1: '#8bb8de', grad2: '#a8d4f0', textStrong: '#4a7ba8', textSoft: '#a8cbe8' },
+    sage:     { grad1: '#8ec9a0', grad2: '#b8e0c4', textStrong: '#4f8a63', textSoft: '#a3d1b0' },
+    mauve:    { grad1: '#b98a9a', grad2: '#d4aab8', textStrong: '#8a5566', textSoft: '#d9bcc4' },
+    /* --- Deeper / more neutral picks --- */
+    steel:    { grad1: '#6a89b8', grad2: '#96b4d8', textStrong: '#3f5f8a', textSoft: '#a8c0dd' },
     slate:    { grad1: '#9098b0', grad2: '#b0b8d0', textStrong: '#5a6180', textSoft: '#b4bad0' },
+    olive:    { grad1: '#7a9060', grad2: '#a3b888', textStrong: '#566b3f', textSoft: '#b8c8a3' },
+    charcoal: { grad1: '#6e7480', grad2: '#949aa8', textStrong: '#454a56', textSoft: '#b0b5c0' },
+    rust:     { grad1: '#b8704a', grad2: '#d4977a', textStrong: '#8a4a2a', textSoft: '#e0b09a' },
     coral:    { grad1: '#f08a72', grad2: '#f7b199', textStrong: '#c1533a', textSoft: '#f4b8a8' },
     mint:     { grad1: '#6fc2b0', grad2: '#9edbcb', textStrong: '#2f7d6c', textSoft: '#a8ddd0' },
     amber:    { grad1: '#e0b25c', grad2: '#f0cf8a', textStrong: '#a67c25', textSoft: '#f0dba8' },
