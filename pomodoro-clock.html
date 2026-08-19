@@ -23,22 +23,24 @@
 
   :root {
     /* Dynamic — these change with the selected palette. Drive only: buttons, timer digits, progress shape, and settings-panel selection chips. */
-    --grad1: #ba9ec7;
-    --grad2: #8ba3de;
-    --text-strong: #7a5c8a;
-    --btn-border: rgba(196, 160, 200, 0.4);
-    --track-color: rgba(196, 160, 200, 0.18);
-    --tab-active-bg: rgba(196, 160, 200, 0.15);
-    --tab-active-border: rgba(196, 160, 200, 0.35);
+    --grad1: #D8A7B1;
+    --grad2: #F3C6D3;
+    --text-strong: #292D32;
+    --btn-border: rgba(216, 167, 177, 0.4);
+    --track-color: rgba(216, 167, 177, 0.18);
+    --tab-active-bg: rgba(216, 167, 177, 0.15);
+    --tab-active-border: rgba(216, 167, 177, 0.35);
 
-    /* Fixed — always the first palette (lavender), regardless of user color choice. */
-    --fixed-soft: #c4a0c8;
-    --fixed-tab-inactive: #9573a3;
-    --fixed-strong: #7a5c8a;
-    --fixed-tab-active-bg: rgba(196, 160, 200, 0.15);
-    --fixed-tab-active-border: rgba(196, 160, 200, 0.35);
-    --fixed-dot-done: #c4a0c8;
-    --fixed-dot-idle: rgba(196, 160, 200, 0.25);
+    /* Fixed — always the first palette (blush), regardless of user color choice.
+       Tab text colors are deepened, readable shades (not the raw pale swatch)
+       so Focus / Short Break / Long Break stay legible for everyone. */
+    --fixed-soft: #C56A3D;
+    --fixed-tab-inactive: #8C6D73;
+    --fixed-strong: #5C3D43;
+    --fixed-tab-active-bg: rgba(216, 167, 177, 0.18);
+    --fixed-tab-active-border: rgba(216, 167, 177, 0.4);
+    --fixed-dot-done: #D8A7B1;
+    --fixed-dot-idle: rgba(216, 167, 177, 0.3);
   }
 
   .widget {
@@ -50,7 +52,7 @@
     overflow: hidden;
     border: 1px solid rgba(210, 180, 220, 0.3);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
-    min-width: 250px;
+    min-width: 210px;
     max-width: 340px;
     width: 100%;
   }
@@ -112,8 +114,8 @@
   .mode-tabs {
     display: flex;
     justify-content: center;
-    flex-wrap: wrap;
-    gap: 6px;
+    flex-wrap: nowrap;
+    gap: 4px;
     margin: 6px 0 16px 0;
     position: relative;
     z-index: 1;
@@ -121,23 +123,29 @@
 
   .tab {
     font-family: 'Jost', sans-serif;
-    font-weight: 600;
-    font-size: 11px;
-    letter-spacing: 0.03em;
+    font-weight: 500;
+    font-size: 10px;
+    letter-spacing: 0.02em;
     text-transform: uppercase;
     color: var(--fixed-tab-inactive);
-    padding: 7px 11px;
+    padding: 6px 8px;
     border-radius: 20px;
     cursor: pointer;
     border: 1px solid transparent;
     transition: all 0.2s;
     background: none;
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .tab.active {
     background: var(--fixed-tab-active-bg);
     border-color: var(--fixed-tab-active-border);
     color: var(--fixed-strong);
+    font-weight: 600;
   }
 
   .mode-label {
@@ -146,8 +154,8 @@
     font-size: 11px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: #554061;
-    opacity: 0.6;
+    color: #4A3A3D;
+    opacity: 0.65;
     margin-bottom: 10px;
   }
 
@@ -252,8 +260,8 @@
     font-weight: 700;
     font-size: 12px;
     letter-spacing: 0.06em;
-    color: #554061;
-    opacity: 0.6;
+    color: #4A3A3D;
+    opacity: 0.65;
     margin-bottom: 16px;
   }
 
@@ -327,10 +335,16 @@
 
   .settings-section-title:first-child { margin-top: 0; }
 
-  .shape-options, .palette-options {
+  .shape-options {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
+  }
+
+  .palette-options {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 8px 6px;
   }
 
   .shape-option {
@@ -353,8 +367,8 @@
   }
 
   .palette-swatch {
-    width: 24px;
-    height: 24px;
+    width: 100%;
+    aspect-ratio: 1 / 1;
     border-radius: 50%;
     cursor: pointer;
     border: 2px solid transparent;
@@ -363,7 +377,7 @@
   }
 
   .palette-swatch.selected {
-    border-color: #6a5a8a;
+    border-color: #292D32;
     transform: scale(1.1);
   }
 
@@ -508,24 +522,24 @@
 <script>
   /* ---------------- Palettes ---------------- */
   const palettes = {
-    /* --- Most-loved pastel picks (feminine-leaning) --- */
-    rose:     { grad1: '#e08ea0', grad2: '#f2b6c4', textStrong: '#a35a72', textSoft: '#dba0b0' },
-    lavender: { grad1: '#ba9ec7', grad2: '#8ba3de', textStrong: '#7a5c8a', textSoft: '#c4a0c8' },
-    lilac:    { grad1: '#c9a0e0', grad2: '#ddc0ef', textStrong: '#8a5aa8', textSoft: '#d8bce8' },
-    peach:    { grad1: '#e8a87c', grad2: '#f2c9a0', textStrong: '#b8703f', textSoft: '#edc09a' },
-    butter:   { grad1: '#e8cf7c', grad2: '#f2e2a0', textStrong: '#a68a2f', textSoft: '#f0e0a8' },
-    sky:      { grad1: '#8bb8de', grad2: '#a8d4f0', textStrong: '#4a7ba8', textSoft: '#a8cbe8' },
-    sage:     { grad1: '#8ec9a0', grad2: '#b8e0c4', textStrong: '#4f8a63', textSoft: '#a3d1b0' },
-    mauve:    { grad1: '#b98a9a', grad2: '#d4aab8', textStrong: '#8a5566', textSoft: '#d9bcc4' },
+    /* --- Feminine-leaning pastels (soft, college-girl aesthetic) --- */
+    blush:      { grad1: '#D8A7B1', grad2: '#F3C6D3', textStrong: '#292D32', textSoft: '#EFD4DA' },
+    lavender:   { grad1: '#C8B6E8', grad2: '#B8D8E8', textStrong: '#17233C', textSoft: '#D6CDEF' },
+    peach:      { grad1: '#F4C6A6', grad2: '#E8D5B7', textStrong: '#292D32', textSoft: '#F6D9BE' },
+    berry:      { grad1: '#B784A7', grad2: '#F3C6D3', textStrong: '#292D32', textSoft: '#D9BED0' },
+    gold:       { grad1: '#C4A15A', grad2: '#F3E5AB', textStrong: '#292D32', textSoft: '#EAD9A0' },
+    cottonCandy:{ grad1: '#F3C6D3', grad2: '#C8B6E8', textStrong: '#17233C', textSoft: '#E3CBDF' },
+    roseGold:   { grad1: '#D8A7B1', grad2: '#F3E5AB', textStrong: '#292D32', textSoft: '#EBD2AF' },
+    skyBlush:   { grad1: '#B8D8E8', grad2: '#F3C6D3', textStrong: '#17233C', textSoft: '#DCCFDF' },
+    champagne:  { grad1: '#F5EFE6', grad2: '#D8A7B1', textStrong: '#292D32', textSoft: '#EAD9D2' },
+    plum:       { grad1: '#B784A7', grad2: '#C8B6E8', textStrong: '#17233C', textSoft: '#D5C1D6' },
+    vanilla:    { grad1: '#F5EFE6', grad2: '#F4C6A6', textStrong: '#292D32', textSoft: '#F4E0CC' },
     /* --- Deeper / more neutral picks --- */
-    steel:    { grad1: '#6a89b8', grad2: '#96b4d8', textStrong: '#3f5f8a', textSoft: '#a8c0dd' },
-    slate:    { grad1: '#9098b0', grad2: '#b0b8d0', textStrong: '#5a6180', textSoft: '#b4bad0' },
-    olive:    { grad1: '#7a9060', grad2: '#a3b888', textStrong: '#566b3f', textSoft: '#b8c8a3' },
-    charcoal: { grad1: '#6e7480', grad2: '#949aa8', textStrong: '#454a56', textSoft: '#b0b5c0' },
-    rust:     { grad1: '#b8704a', grad2: '#d4977a', textStrong: '#8a4a2a', textSoft: '#e0b09a' },
-    coral:    { grad1: '#f08a72', grad2: '#f7b199', textStrong: '#c1533a', textSoft: '#f4b8a8' },
-    mint:     { grad1: '#6fc2b0', grad2: '#9edbcb', textStrong: '#2f7d6c', textSoft: '#a8ddd0' },
-    amber:    { grad1: '#e0b25c', grad2: '#f0cf8a', textStrong: '#a67c25', textSoft: '#f0dba8' },
+    midnight:   { grad1: '#17233C', grad2: '#53677D', textStrong: '#17233C', textSoft: '#8C99AA' },
+    forest:     { grad1: '#315C4A', grad2: '#7C9A8C', textStrong: '#315C4A', textSoft: '#A4B8AC' },
+    charcoal:   { grad1: '#292D32', grad2: '#53677D', textStrong: '#292D32', textSoft: '#909BA8' },
+    copper:     { grad1: '#C56A3D', grad2: '#C4A15A', textStrong: '#292D32', textSoft: '#DDA97F' },
+    steel:      { grad1: '#53677D', grad2: '#8694A4', textStrong: '#53677D', textSoft: '#B0BAC4' },
   };
 
   function hexToRgba(hex, alpha) {
