@@ -31,9 +31,9 @@
     --tab-active-bg: rgba(216, 167, 177, 0.15);
     --tab-active-border: rgba(216, 167, 177, 0.35);
 
-    --tough: #FFD9B3;
-    --okay: #BFE3F5;
-    --great: #C9EAB0;
+    --tough: #e8a87c;
+    --okay: #8bb8de;
+    --great: #6fc2b0;
   }
 
   .widget {
@@ -45,8 +45,8 @@
     overflow: hidden;
     border: 1px solid rgba(210, 180, 220, 0.3);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
-    min-width: 280px;
-    max-width: 380px;
+    min-width: 220px;
+    max-width: 320px;
     width: 100%;
   }
 
@@ -199,9 +199,9 @@
     opacity: 0.6;
   }
 
-  .day-cell.mood-tough { background: linear-gradient(135deg, var(--tough), #FFB380); }
-  .day-cell.mood-okay  { background: linear-gradient(135deg, var(--okay), #8FCBE8); }
-  .day-cell.mood-great { background: linear-gradient(135deg, var(--great), #94D2A0); }
+  .day-cell.mood-tough { background: linear-gradient(135deg, var(--tough), #f2c9a0); }
+  .day-cell.mood-okay  { background: linear-gradient(135deg, var(--okay), #a8d4f0); }
+  .day-cell.mood-great { background: linear-gradient(135deg, var(--great), #9edbcb); }
 
   .face-icon { display: block; }
   .day-cell .face-icon { width: 30%; height: 30%; }
@@ -353,12 +353,12 @@
 
   .mood-option:hover { transform: translateY(-1px); }
 
-  .mood-option.tough { border-color: rgba(255,217,179,0.7); }
-  .mood-option.tough:hover { background: rgba(255,179,128,0.25); }
-  .mood-option.okay { border-color: rgba(191,227,245,0.7); }
-  .mood-option.okay:hover { background: rgba(143,203,232,0.25); }
-  .mood-option.great { border-color: rgba(201,234,176,0.7); }
-  .mood-option.great:hover { background: rgba(148,210,160,0.25); }
+  .mood-option.tough { border-color: rgba(244,198,166,0.7); }
+  .mood-option.tough:hover { background: rgba(244,198,166,0.25); }
+  .mood-option.okay { border-color: rgba(184,216,232,0.7); }
+  .mood-option.okay:hover { background: rgba(184,216,232,0.25); }
+  .mood-option.great { border-color: rgba(183,201,178,0.7); }
+  .mood-option.great:hover { background: rgba(183,201,178,0.25); }
 
   .mood-swatch {
     width: 26px;
@@ -370,9 +370,9 @@
     flex-shrink: 0;
   }
 
-  .mood-swatch.tough { background: linear-gradient(135deg, var(--tough), #FFB380); }
-  .mood-swatch.okay  { background: linear-gradient(135deg, var(--okay), #8FCBE8); }
-  .mood-swatch.great { background: linear-gradient(135deg, var(--great), #94D2A0); }
+  .mood-swatch.tough { background: linear-gradient(135deg, var(--tough), #E8D5B7); }
+  .mood-swatch.okay  { background: linear-gradient(135deg, var(--okay), #9FC8E0); }
+  .mood-swatch.great { background: linear-gradient(135deg, var(--great), #96B89E); }
 
   .clear-link {
     display: block;
@@ -461,9 +461,9 @@
   }
 
   const MOOD_META = {
-    tough: { label: 'Tough', color: '#FFB380' },
-    okay:  { label: 'Okay',  color: '#8FCBE8' },
-    great: { label: 'Great', color: '#94D2A0' }
+    tough: { label: 'Tough', color: '#F4C6A6' },
+    okay:  { label: 'Okay',  color: '#B8D8E8' },
+    great: { label: 'Great', color: '#B7C9B2' }
   };
 
   // ---------- State ----------
@@ -473,6 +473,27 @@
 
   const moodData = {};       // key: 'YYYY-M-D' -> 'tough' | 'okay' | 'great'
   const savedSnapshots = []; // in-memory saved snapshots
+  const STORAGE_KEY = 'moodCalendarData_v1';
+
+  function loadMoodData() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        Object.keys(parsed).forEach(k => { moodData[k] = parsed[k]; });
+      }
+    } catch (e) {
+      // localStorage unavailable (e.g. sandboxed preview) — falls back to in-memory only for this session
+    }
+  }
+
+  function persistMoodData() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(moodData));
+    } catch (e) {
+      // silently ignore — data still works in-memory for the current session
+    }
+  }
   let activeDayKey = null;
 
   const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -570,6 +591,7 @@
   function setMood(mood) {
     if (!activeDayKey) return;
     moodData[activeDayKey] = mood;
+    persistMoodData();
     closePopup();
     renderCalendar();
   }
@@ -577,6 +599,7 @@
   function clearMood() {
     if (!activeDayKey) return;
     delete moodData[activeDayKey];
+    persistMoodData();
     closePopup();
     renderCalendar();
   }
@@ -612,6 +635,7 @@
   }
 
   // ---------- Init ----------
+  loadMoodData();
   initPopupFaces();
   renderCalendar();
 </script>
