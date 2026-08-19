@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mood Calendar</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&family=Jost:wght@200;300;400;500;600&family=Gabarito:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    background: transparent;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    min-height: 100vh;
+    padding: 16px;
+  }
+
+  :root {
+    --grad1: #D8A7B1;
+    --grad2: #C8B6E8;
+    --text-strong: #292D32;
+    --text-soft: #7A6B70;
+    --btn-border: rgba(216, 167, 177, 0.4);
+    --tab-active-bg: rgba(216, 167, 177, 0.15);
+    --tab-active-border: rgba(216, 167, 177, 0.35);
+
+    --tough: #FFD9B3;
+    --okay: #BFE3F5;
+    --great: #C9EAB0;
+  }
+
+  .widget {
+    background: linear-gradient(135deg, #fdf0f5 0%, #f5eef8 50%, #eef0fb 100%);
+    border-radius: 20px;
+    padding: 22px 24px 22px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(210, 180, 220, 0.3);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+    min-width: 280px;
+    max-width: 380px;
+    width: 100%;
+  }
+
+  .widget::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(220,180,240,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .widget::after {
+    content: '';
+    position: absolute;
+    bottom: -30px; left: -30px;
+    width: 100px; height: 100px;
+    background: radial-gradient(circle, rgba(180,200,240,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .sparkles {
+    position: absolute;
+    font-size: 8px;
+    color: rgba(196, 160, 200, 0.4);
+    z-index: 1;
+  }
+  .sparkles.s1 { top: 14px; left: 16px; }
+  .sparkles.s2 { bottom: 14px; right: 16px; }
+
+  /* ---------- Header ---------- */
+  .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 14px;
+  }
+
+  .nav-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid var(--btn-border);
+    background: rgba(255,255,255,0.5);
+    color: var(--text-strong);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .nav-btn:hover {
+    background: var(--tab-active-bg);
+    border-color: var(--tab-active-border);
+    transform: translateY(-1px);
+  }
+
+  .cal-title {
+    font-family: 'Lora', serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text-strong);
+    letter-spacing: 0.02em;
+  }
+
+  /* ---------- Weekday row ---------- */
+  .weekday-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 6px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .weekday-cell {
+    font-family: 'Jost', sans-serif;
+    font-weight: 500;
+    font-size: 9.5px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+    opacity: 0.75;
+    text-align: center;
+    padding-bottom: 2px;
+  }
+
+  /* ---------- Day grid ---------- */
+  .day-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 16px;
+  }
+
+  .day-cell {
+    aspect-ratio: 1 / 1;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-strong);
+    background: rgba(255,255,255,0.45);
+    border: 1px solid rgba(210,180,220,0.25);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .day-cell.empty {
+    background: none;
+    border: none;
+    cursor: default;
+  }
+
+  .day-cell.today {
+    border-color: var(--text-strong);
+    border-width: 1.5px;
+    font-weight: 600;
+  }
+
+  .day-cell:not(.empty):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(150,120,160,0.25);
+  }
+
+  .day-cell.logged {
+    color: #292D32;
+    border-color: transparent;
+  }
+
+  .day-cell.logged .day-num {
+    position: absolute;
+    top: 3px;
+    left: 5px;
+    font-size: 8px;
+    opacity: 0.6;
+  }
+
+  .day-cell.mood-tough { background: linear-gradient(135deg, var(--tough), #FFB380); }
+  .day-cell.mood-okay  { background: linear-gradient(135deg, var(--okay), #8FCBE8); }
+  .day-cell.mood-great { background: linear-gradient(135deg, var(--great), #94D2A0); }
+
+  .face-icon { display: block; }
+  .day-cell .face-icon { width: 30%; height: 30%; }
+
+  /* ---------- Summary ---------- */
+  .summary-row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+    flex-wrap: wrap;
+  }
+
+  .summary-chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    color: var(--text-strong);
+  }
+
+  .summary-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .summary-count {
+    font-weight: 600;
+  }
+
+  .summary-label {
+    opacity: 0.65;
+  }
+
+  /* ---------- Save row ---------- */
+  .save-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .save-btn {
+    font-family: 'Jost', sans-serif;
+    font-weight: 400;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 8px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    border: none;
+    background: linear-gradient(135deg, var(--grad1), var(--grad2));
+    color: #fff;
+    opacity: 0.92;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .save-btn:hover { transform: translateY(-1px); opacity: 1; }
+
+  .save-status {
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    color: var(--text-soft);
+    margin-top: 8px;
+    height: 14px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    position: relative;
+    z-index: 1;
+  }
+
+  .save-status.show { opacity: 0.85; }
+
+  /* ---------- Popup ---------- */
+  .popup-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(60, 40, 55, 0.28);
+    backdrop-filter: blur(2px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    border-radius: 20px;
+  }
+
+  .popup-overlay.open { display: flex; }
+
+  .popup-card {
+    background: #fffaf9;
+    border-radius: 16px;
+    padding: 18px 20px 16px 20px;
+    width: 82%;
+    max-width: 260px;
+    box-shadow: 0 8px 30px rgba(80,50,70,0.25);
+    position: relative;
+  }
+
+  .popup-close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    border: none;
+    background: none;
+    color: var(--text-soft);
+    font-size: 14px;
+    cursor: pointer;
+    font-family: 'Jost', sans-serif;
+    line-height: 1;
+  }
+
+  .popup-title {
+    font-family: 'Lora', serif;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-strong);
+    margin-bottom: 14px;
+  }
+
+  .mood-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .mood-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 12px;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    background: rgba(0,0,0,0.03);
+    transition: all 0.15s;
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-strong);
+  }
+
+  .mood-option:hover { transform: translateY(-1px); }
+
+  .mood-option.tough { border-color: rgba(255,217,179,0.7); }
+  .mood-option.tough:hover { background: rgba(255,179,128,0.25); }
+  .mood-option.okay { border-color: rgba(191,227,245,0.7); }
+  .mood-option.okay:hover { background: rgba(143,203,232,0.25); }
+  .mood-option.great { border-color: rgba(201,234,176,0.7); }
+  .mood-option.great:hover { background: rgba(148,210,160,0.25); }
+
+  .mood-swatch {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .mood-swatch.tough { background: linear-gradient(135deg, var(--tough), #FFB380); }
+  .mood-swatch.okay  { background: linear-gradient(135deg, var(--okay), #8FCBE8); }
+  .mood-swatch.great { background: linear-gradient(135deg, var(--great), #94D2A0); }
+
+  .clear-link {
+    display: block;
+    text-align: center;
+    margin-top: 12px;
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    color: var(--text-soft);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+  }
+</style>
+</head>
+<body>
+<div class="widget">
+  <span class="sparkles s1">✦</span>
+  <span class="sparkles s2">✦</span>
+
+  <div class="cal-header">
+    <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
+    <div class="cal-title" id="cal-title"></div>
+    <button class="nav-btn" onclick="changeMonth(1)">›</button>
+  </div>
+
+  <div class="weekday-row">
+    <div class="weekday-cell">Sun</div>
+    <div class="weekday-cell">Mon</div>
+    <div class="weekday-cell">Tue</div>
+    <div class="weekday-cell">Wed</div>
+    <div class="weekday-cell">Thu</div>
+    <div class="weekday-cell">Fri</div>
+    <div class="weekday-cell">Sat</div>
+  </div>
+
+  <div class="day-grid" id="day-grid"></div>
+
+  <div class="summary-row" id="summary-row"></div>
+
+  <div class="save-row">
+    <button class="save-btn" onclick="saveData()">Save Month</button>
+  </div>
+  <div class="save-status" id="save-status"></div>
+
+  <div class="popup-overlay" id="popup-overlay">
+    <div class="popup-card">
+      <button class="popup-close" onclick="closePopup()">✕</button>
+      <div class="popup-title" id="popup-title">How was this day?</div>
+      <div class="mood-options">
+        <div class="mood-option tough" onclick="setMood('tough')">
+          <div class="mood-swatch tough"></div>
+          Tough
+        </div>
+        <div class="mood-option okay" onclick="setMood('okay')">
+          <div class="mood-swatch okay"></div>
+          Okay
+        </div>
+        <div class="mood-option great" onclick="setMood('great')">
+          <div class="mood-swatch great"></div>
+          Great
+        </div>
+      </div>
+      <button class="clear-link" id="clear-link" onclick="clearMood()" style="display:none;">Clear this day</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- Face icon SVGs (stroke uses --text-strong equivalent, white-friendly) ----------
+  function faceSvg(type, size) {
+    const stroke = '#292D32';
+    const mouths = {
+      tough: '<path d="M8 16 Q12 13 16 16" stroke="' + stroke + '" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+      okay:  '<path d="M8 15 L16 15" stroke="' + stroke + '" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
+      great: '<path d="M8 13 Q12 17 16 13" stroke="' + stroke + '" stroke-width="1.6" fill="none" stroke-linecap="round"/>'
+    };
+    const dims = size ? (' width="' + size + '" height="' + size + '"') : '';
+    return '<svg class="face-icon"' + dims + ' viewBox="0 0 24 24">' +
+      '<circle cx="9" cy="10" r="1.4" fill="' + stroke + '"/>' +
+      '<circle cx="15" cy="10" r="1.4" fill="' + stroke + '"/>' +
+      mouths[type] +
+      '</svg>';
+  }
+
+  const MOOD_META = {
+    tough: { label: 'Tough', color: '#FFB380' },
+    okay:  { label: 'Okay',  color: '#8FCBE8' },
+    great: { label: 'Great', color: '#94D2A0' }
+  };
+
+  // ---------- State ----------
+  const today = new Date();
+  let viewYear = today.getFullYear();
+  let viewMonth = today.getMonth(); // 0-indexed
+
+  const moodData = {};       // key: 'YYYY-M-D' -> 'tough' | 'okay' | 'great'
+  const savedSnapshots = []; // in-memory saved snapshots
+  let activeDayKey = null;
+
+  const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  function dateKey(y, m, d) { return y + '-' + m + '-' + d; }
+
+  // ---------- Popup face icons (injected once, real DOM not template literals) ----------
+  function initPopupFaces() {
+    document.querySelectorAll('.mood-swatch.tough')[0].innerHTML = faceSvg('tough', 19);
+    document.querySelectorAll('.mood-swatch.okay')[0].innerHTML = faceSvg('okay', 19);
+    document.querySelectorAll('.mood-swatch.great')[0].innerHTML = faceSvg('great', 19);
+  }
+
+  // ---------- Calendar rendering ----------
+  function renderCalendar() {
+    document.getElementById('cal-title').textContent = MONTH_NAMES[viewMonth] + ' ' + viewYear;
+
+    const grid = document.getElementById('day-grid');
+    grid.innerHTML = '';
+
+    const firstWeekday = new Date(viewYear, viewMonth, 1).getDay();
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+    for (let i = 0; i < firstWeekday; i++) {
+      const empty = document.createElement('div');
+      empty.className = 'day-cell empty';
+      grid.appendChild(empty);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = dateKey(viewYear, viewMonth, d);
+      const cell = document.createElement('div');
+      cell.className = 'day-cell';
+
+      const isToday = viewYear === today.getFullYear() && viewMonth === today.getMonth() && d === today.getDate();
+      if (isToday) cell.classList.add('today');
+
+      const mood = moodData[key];
+      if (mood) {
+        cell.classList.add('logged', 'mood-' + mood);
+        cell.innerHTML = '<span class="day-num">' + d + '</span>' + faceSvg(mood);
+      } else {
+        cell.textContent = d;
+      }
+
+      cell.addEventListener('click', () => openPopup(key, d));
+      grid.appendChild(cell);
+    }
+
+    renderSummary();
+  }
+
+  function renderSummary() {
+    const counts = { tough: 0, okay: 0, great: 0 };
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    for (let d = 1; d <= daysInMonth; d++) {
+      const mood = moodData[dateKey(viewYear, viewMonth, d)];
+      if (mood) counts[mood]++;
+    }
+
+    const row = document.getElementById('summary-row');
+    row.innerHTML = '';
+    ['tough', 'okay', 'great'].forEach(m => {
+      const chip = document.createElement('div');
+      chip.className = 'summary-chip';
+      chip.innerHTML =
+        '<span class="summary-dot" style="background:' + MOOD_META[m].color + '"></span>' +
+        '<span class="summary-count">' + counts[m] + '</span>' +
+        '<span class="summary-label">' + MOOD_META[m].label + '</span>';
+      row.appendChild(chip);
+    });
+  }
+
+  function changeMonth(delta) {
+    viewMonth += delta;
+    if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+    if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+    renderCalendar();
+  }
+
+  // ---------- Popup ----------
+  function openPopup(key, dayNum) {
+    activeDayKey = key;
+    document.getElementById('popup-title').textContent =
+      MONTH_NAMES[viewMonth] + ' ' + dayNum + ' — how was this day?';
+    document.getElementById('clear-link').style.display = moodData[key] ? 'block' : 'none';
+    document.getElementById('popup-overlay').classList.add('open');
+  }
+
+  function closePopup() {
+    document.getElementById('popup-overlay').classList.remove('open');
+    activeDayKey = null;
+  }
+
+  function setMood(mood) {
+    if (!activeDayKey) return;
+    moodData[activeDayKey] = mood;
+    closePopup();
+    renderCalendar();
+  }
+
+  function clearMood() {
+    if (!activeDayKey) return;
+    delete moodData[activeDayKey];
+    closePopup();
+    renderCalendar();
+  }
+
+  document.getElementById('popup-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'popup-overlay') closePopup();
+  });
+
+  // ---------- Save action ----------
+  function saveData() {
+    const label = MONTH_NAMES[viewMonth] + ' ' + viewYear;
+    const entries = [];
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = dateKey(viewYear, viewMonth, d);
+      entries.push({ date: key, mood: moodData[key] || null });
+    }
+
+    const loggedCount = entries.filter(e => e.mood).length;
+
+    savedSnapshots.push({
+      scope: 'month',
+      label: label,
+      savedAt: new Date().toISOString(),
+      entries: entries
+    });
+
+    const status = document.getElementById('save-status');
+    status.textContent = 'Saved ' + label + ' — ' + loggedCount + '/' + entries.length + ' days logged ✓';
+    status.classList.add('show');
+    clearTimeout(window.__saveStatusTimer);
+    window.__saveStatusTimer = setTimeout(() => status.classList.remove('show'), 3000);
+  }
+
+  // ---------- Init ----------
+  initPopupFaces();
+  renderCalendar();
+</script>
+</body>
+</html>
