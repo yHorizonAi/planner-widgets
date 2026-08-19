@@ -10,16 +10,17 @@
 
   html, body {
     height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
     background: transparent;
   }
 
   body {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     font-family: 'Cormorant Garamond', serif;
-    min-height: 100vh;
-    padding: 16px;
+    padding: 12px 0;
   }
 
   :root {
@@ -37,13 +38,13 @@
   }
 
   .widget {
-    background: linear-gradient(135deg, #fdf0f5 0%, #f5eef8 50%, #eef0fb 100%);
+    background: linear-gradient(135deg, #eef0fb 0%, #e8e4f5 50%, #dde8f8 100%);
     border-radius: 20px;
-    padding: 22px 24px 22px 24px;
+    padding: 22px 28px;
     text-align: center;
     position: relative;
     overflow: hidden;
-    border: 1px solid rgba(210, 180, 220, 0.3);
+    border: 1px solid rgba(180, 180, 230, 0.3);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
     min-width: 220px;
     max-width: 320px;
@@ -447,16 +448,33 @@
   // ---------- Face icon SVGs (stroke uses --text-strong equivalent, white-friendly) ----------
   function faceSvg(type, size) {
     const stroke = '#292D32';
-    const mouths = {
-      tough: '<path d="M8 16 Q12 13 16 16" stroke="' + stroke + '" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
-      okay:  '<path d="M8 15 L16 15" stroke="' + stroke + '" stroke-width="1.6" fill="none" stroke-linecap="round"/>',
-      great: '<path d="M8 13 Q12 17 16 13" stroke="' + stroke + '" stroke-width="1.6" fill="none" stroke-linecap="round"/>'
-    };
     const dims = size ? (' width="' + size + '" height="' + size + '"') : '';
+
+    if (type === 'tough') {
+      // Worried: slanted inner eyebrows + downturned eyes + deep frown
+      return '<svg class="face-icon"' + dims + ' viewBox="0 0 24 24">' +
+        '<path d="M7 8.5 L10.5 9.8" stroke="' + stroke + '" stroke-width="1.5" stroke-linecap="round" fill="none"/>' +
+        '<path d="M17 8.5 L13.5 9.8" stroke="' + stroke + '" stroke-width="1.5" stroke-linecap="round" fill="none"/>' +
+        '<circle cx="9" cy="11.5" r="1.3" fill="' + stroke + '"/>' +
+        '<circle cx="15" cy="11.5" r="1.3" fill="' + stroke + '"/>' +
+        '<path d="M7.5 17.5 Q12 13.5 16.5 17.5" stroke="' + stroke + '" stroke-width="1.7" fill="none" stroke-linecap="round"/>' +
+        '</svg>';
+    }
+    if (type === 'okay') {
+      // Neutral: relaxed dot eyes + straight mouth
+      return '<svg class="face-icon"' + dims + ' viewBox="0 0 24 24">' +
+        '<circle cx="9" cy="10.5" r="1.3" fill="' + stroke + '"/>' +
+        '<circle cx="15" cy="10.5" r="1.3" fill="' + stroke + '"/>' +
+        '<path d="M8.5 15.5 L15.5 15.5" stroke="' + stroke + '" stroke-width="1.7" fill="none" stroke-linecap="round"/>' +
+        '</svg>';
+    }
+    // great: closed happy crescent eyes + big open smile + blush
     return '<svg class="face-icon"' + dims + ' viewBox="0 0 24 24">' +
-      '<circle cx="9" cy="10" r="1.4" fill="' + stroke + '"/>' +
-      '<circle cx="15" cy="10" r="1.4" fill="' + stroke + '"/>' +
-      mouths[type] +
+      '<path d="M6.8 10.5 Q9 8.3 11.2 10.5" stroke="' + stroke + '" stroke-width="1.6" fill="none" stroke-linecap="round"/>' +
+      '<path d="M12.8 10.5 Q15 8.3 17.2 10.5" stroke="' + stroke + '" stroke-width="1.6" fill="none" stroke-linecap="round"/>' +
+      '<path d="M7 14 Q12 19.5 17 14" stroke="' + stroke + '" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<circle cx="6.3" cy="14" r="1" fill="' + stroke + '" opacity="0.35"/>' +
+      '<circle cx="17.7" cy="14" r="1" fill="' + stroke + '" opacity="0.35"/>' +
       '</svg>';
   }
 
@@ -534,7 +552,7 @@
       const mood = moodData[key];
       if (mood) {
         cell.classList.add('logged', 'mood-' + mood);
-        cell.innerHTML = '<span class="day-num">' + d + '</span>' + faceSvg(mood);
+        cell.innerHTML = '<span class="day-num">' + d + '</span>';
       } else {
         cell.textContent = d;
       }
