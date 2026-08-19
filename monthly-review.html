@@ -341,8 +341,6 @@
   <span class="sparkles s1">✦</span>
   <span class="sparkles s2">✦</span>
 
-  <div class="period-label" id="period-label"></div>
-
   <!-- Tasks -->
   <div class="row">
     <div class="row-label">
@@ -512,7 +510,8 @@
   }
 
   function renderPeriodLabel() {
-    document.getElementById('period-label').textContent = getMonthRange().label;
+    const el = document.getElementById('period-label');
+    if (el) el.textContent = getMonthRange().label;
   }
 
   let monthAlreadySaved = false;
