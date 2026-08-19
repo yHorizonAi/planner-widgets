@@ -56,24 +56,13 @@
   .sparkles.s1 { top: 14px; left: 18px; }
   .sparkles.s2 { top: 14px; right: 18px; }
 
-  .title {
+  .period-label {
     font-family: 'Lora', serif;
     font-weight: 700;
-    font-size: 14px;
-    letter-spacing: 0.1em;
+    font-size: 21px;
+    letter-spacing: 0.03em;
     color: #6a5a8a;
-    margin-bottom: 2px;
-    position: relative;
-    z-index: 1;
-  }
-
-  .period-label {
-    font-family: 'Jost', sans-serif;
-    font-weight: 400;
-    font-size: 11px;
-    letter-spacing: 0.04em;
-    color: #a0a0c0;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
     position: relative;
     z-index: 1;
   }
@@ -256,6 +245,47 @@
     transform: translateY(-1px);
   }
 
+  .save-btn.confirming {
+    border-color: rgba(192,112,112,0.7);
+    background: rgba(192,112,112,0.12);
+    color: #c07070;
+    gap: 8px;
+  }
+
+  .save-confirm-text {
+    font-family: 'Jost', sans-serif;
+    font-weight: 400;
+    font-size: 10.5px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .save-confirm-actions {
+    display: inline-flex;
+    gap: 6px;
+  }
+
+  .save-yes, .save-no {
+    font-family: 'Lora', serif;
+    font-weight: 700;
+    font-size: 10px;
+    padding: 3px 9px;
+    border-radius: 12px;
+    cursor: pointer;
+    line-height: 1.4;
+  }
+
+  .save-yes {
+    background: rgba(192,112,112,0.85);
+    color: #fff;
+  }
+
+  .save-no {
+    background: rgba(255,255,255,0.6);
+    color: #c07070;
+    border: 1px solid rgba(192,112,112,0.4);
+  }
+
   .history-btn {
     display: inline-flex;
     align-items: center;
@@ -311,7 +341,6 @@
   <span class="sparkles s1">✦</span>
   <span class="sparkles s2">✦</span>
 
-  <div class="title">MONTHLY REVIEW</div>
   <div class="period-label" id="period-label"></div>
 
   <!-- Tasks -->
@@ -400,17 +429,15 @@
 
   <div class="divider"></div>
 
-  <div style="display:flex; gap:8px; justify-content:center;">
-    <button class="save-btn" onclick="saveMonth()">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="margin-right:6px;" xmlns="http://www.w3.org/2000/svg">
-        <path d="M5 4h11l3 3v13a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1z" fill="#6a5a8a" opacity="0.18" stroke="#6a5a8a" stroke-width="1.4" stroke-linejoin="round"/>
-        <rect x="8" y="4" width="7" height="5" fill="#6a5a8a" opacity="0.3" stroke="#6a5a8a" stroke-width="1.2"/>
-        <rect x="7" y="13.5" width="10" height="6.5" fill="none" stroke="#6a5a8a" stroke-width="1.2"/>
+  <div style="display:flex; gap:8px; justify-content:center; align-items:center;">
+    <button class="save-btn" onclick="handleSaveClick()">
+      <svg width="39" height="39" viewBox="0 0 24 24" style="margin-right:8px;" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7 3h10a2 2 0 012 2v16l-8-4.5L3 21V5a2 2 0 012-2z" fill="#6a5a8a" opacity="0.85"/>
       </svg>
       Save this Month
     </button>
     <button class="history-btn" onclick="toggleHistory()">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="margin-right:5px;" xmlns="http://www.w3.org/2000/svg">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" style="margin-right:6px;" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12" cy="12" r="8.5" fill="none" stroke="#a0a0c0" stroke-width="1.5"/>
         <path d="M12 7.5v5l3.3 2" stroke="#a0a0c0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
       </svg>
@@ -488,7 +515,60 @@
     document.getElementById('period-label').textContent = getMonthRange().label;
   }
 
-  function saveMonth() {
+  let monthAlreadySaved = false;
+  let saveConfirmTimeout = null;
+
+  function defaultSaveHTML() {
+    return '<svg width="39" height="39" viewBox="0 0 24 24" style="margin-right:8px;">' +
+      '<path d="M7 3h10a2 2 0 012 2v16l-8-4.5L3 21V5a2 2 0 012-2z" fill="#6a5a8a" opacity="0.85"/>' +
+      '</svg>Save this Month';
+  }
+
+  function checkAlreadySavedThisMonth() {
+    const { key } = getMonthRange();
+    const history = JSON.parse(localStorage.getItem('mr_history') || '[]');
+    monthAlreadySaved = history.some(e => e.monthKey === key);
+  }
+
+  function handleSaveClick() {
+    const btn = document.querySelector('.save-btn');
+    if (btn.dataset.confirming === 'true') return; // ignore body click while Yes/No is showing
+
+    if (monthAlreadySaved) {
+      showSaveConfirm();
+    } else {
+      performSave();
+    }
+  }
+
+  function showSaveConfirm() {
+    const btn = document.querySelector('.save-btn');
+    btn.dataset.confirming = 'true';
+    btn.classList.add('confirming');
+    btn.innerHTML =
+      '<span class="save-confirm-text">Save new changes?</span>' +
+      '<span class="save-confirm-actions">' +
+      '<span class="save-yes" onclick="event.stopPropagation(); confirmSaveYes();">Yes</span>' +
+      '<span class="save-no" onclick="event.stopPropagation(); confirmSaveNo();">No</span>' +
+      '</span>';
+    clearTimeout(saveConfirmTimeout);
+    saveConfirmTimeout = setTimeout(confirmSaveNo, 6000);
+  }
+
+  function confirmSaveYes() {
+    clearTimeout(saveConfirmTimeout);
+    performSave();
+  }
+
+  function confirmSaveNo() {
+    clearTimeout(saveConfirmTimeout);
+    const btn = document.querySelector('.save-btn');
+    btn.dataset.confirming = 'false';
+    btn.classList.remove('confirming');
+    btn.innerHTML = defaultSaveHTML();
+  }
+
+  function performSave() {
     const { key, label } = getMonthRange();
     const habit = localStorage.getItem('mr_habit') || '—';
 
@@ -511,11 +591,13 @@
     localStorage.setItem('mr_history', JSON.stringify(history));
 
     hasUnsavedChanges = false;
+    monthAlreadySaved = true;
 
     const btn = document.querySelector('.save-btn');
-    const original = btn.innerHTML;
-    btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="margin-right:6px;"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#6a5a8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>Saved!';
-    setTimeout(() => btn.innerHTML = original, 1500);
+    btn.dataset.confirming = 'false';
+    btn.classList.remove('confirming');
+    btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="margin-right:6px;"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#6a5a8a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>Saved!';
+    setTimeout(() => btn.innerHTML = defaultSaveHTML(), 1500);
 
     renderHistory();
   }
@@ -633,6 +715,7 @@
 
   // Restore saved state
   renderPeriodLabel();
+  checkAlreadySavedThisMonth();
   counts.tasks = parseInt(localStorage.getItem('mr_tasks') || 0);
   counts.assignments = parseInt(localStorage.getItem('mr_assignments') || 0);
   counts.exams = parseInt(localStorage.getItem('mr_exams') || 0);
