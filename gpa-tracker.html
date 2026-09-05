@@ -358,7 +358,7 @@
       const row = document.createElement('div');
       row.className = 'class-row';
       row.innerHTML = `
-        <input type="text" class="class-input" value="${c.name}" placeholder="Class name..." onchange="updateName(${c.id}, this.value)">
+        <input type="text" class="class-input" value="${c.name}" placeholder="Course name..." onchange="updateName(${c.id}, this.value)">
         <select class="class-select" onchange="updateGrade(${c.id}, this.value)">
           ${Object.keys(gradeScale).map(g => `<option value="${g}" ${c.grade === g ? 'selected' : ''}>${g}</option>`).join('')}
         </select>
