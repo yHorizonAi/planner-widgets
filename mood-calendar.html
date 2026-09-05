@@ -32,9 +32,9 @@
     --tab-active-bg: rgba(216, 167, 177, 0.15);
     --tab-active-border: rgba(216, 167, 177, 0.35);
 
-    --tough: #ff9063;
-    --okay: #87ceeb;
-    --great: #90ee90;
+    --tough: #e8a87c;
+    --okay: #8bb8de;
+    --great: #6fc2b0;
   }
 
   .widget {
@@ -200,9 +200,9 @@
     opacity: 0.6;
   }
 
-  .day-cell.mood-tough { background: linear-gradient(135deg, var(--tough), #ffb08f); }
-  .day-cell.mood-okay  { background: linear-gradient(135deg, var(--okay), #aedff2); }
-  .day-cell.mood-great { background: linear-gradient(135deg, var(--great), #b3f0b3); }
+  .day-cell.mood-tough { background: linear-gradient(135deg, var(--tough), #f2c9a0); }
+  .day-cell.mood-okay  { background: linear-gradient(135deg, var(--okay), #a8d4f0); }
+  .day-cell.mood-great { background: linear-gradient(135deg, var(--great), #9edbcb); }
 
   .face-icon { display: block; }
   .day-cell .face-icon { width: 30%; height: 30%; }
@@ -241,48 +241,8 @@
     opacity: 0.65;
   }
 
-  /* ---------- Save row ---------- */
-  .save-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    position: relative;
-    z-index: 1;
-  }
-
-  .save-btn {
-    font-family: 'Jost', sans-serif;
-    font-weight: 400;
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 8px 18px;
-    border-radius: 20px;
-    cursor: pointer;
-    border: none;
-    background: linear-gradient(135deg, var(--grad1), var(--grad2));
-    color: #fff;
-    opacity: 0.92;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
-
-  .save-btn:hover { transform: translateY(-1px); opacity: 1; }
-
-  .save-status {
-    font-family: 'Jost', sans-serif;
-    font-size: 10px;
-    color: var(--text-soft);
-    margin-top: 8px;
-    height: 14px;
-    opacity: 0;
-    transition: opacity 0.3s;
-    position: relative;
-    z-index: 1;
-  }
-
-  .save-status.show { opacity: 0.85; }
+  /* Save row removed Sept 5, 2026 — button was decorative; day-by-day entries
+     already auto-save via persistMoodData() in setMood()/clearMood(). */
 
   /* ---------- Popup ---------- */
   .popup-overlay {
@@ -354,12 +314,12 @@
 
   .mood-option:hover { transform: translateY(-1px); }
 
-  .mood-option.tough { border-color: rgba(255,144,99,0.7); }
-  .mood-option.tough:hover { background: rgba(255,144,99,0.25); }
-  .mood-option.okay { border-color: rgba(135,206,235,0.7); }
-  .mood-option.okay:hover { background: rgba(135,206,235,0.25); }
-  .mood-option.great { border-color: rgba(144,238,144,0.7); }
-  .mood-option.great:hover { background: rgba(144,238,144,0.25); }
+  .mood-option.tough { border-color: rgba(244,198,166,0.7); }
+  .mood-option.tough:hover { background: rgba(244,198,166,0.25); }
+  .mood-option.okay { border-color: rgba(184,216,232,0.7); }
+  .mood-option.okay:hover { background: rgba(184,216,232,0.25); }
+  .mood-option.great { border-color: rgba(183,201,178,0.7); }
+  .mood-option.great:hover { background: rgba(183,201,178,0.25); }
 
   .mood-swatch {
     width: 26px;
@@ -371,9 +331,9 @@
     flex-shrink: 0;
   }
 
-  .mood-swatch.tough { background: linear-gradient(135deg, var(--tough), #ffb08f); }
-  .mood-swatch.okay  { background: linear-gradient(135deg, var(--okay), #aedff2); }
-  .mood-swatch.great { background: linear-gradient(135deg, var(--great), #b3f0b3); }
+  .mood-swatch.tough { background: linear-gradient(135deg, var(--tough), #E8D5B7); }
+  .mood-swatch.okay  { background: linear-gradient(135deg, var(--okay), #9FC8E0); }
+  .mood-swatch.great { background: linear-gradient(135deg, var(--great), #96B89E); }
 
   .clear-link {
     display: block;
@@ -415,11 +375,6 @@
   <div class="day-grid" id="day-grid"></div>
 
   <div class="summary-row" id="summary-row"></div>
-
-  <div class="save-row">
-    <button class="save-btn" onclick="saveData()">Save Month</button>
-  </div>
-  <div class="save-status" id="save-status"></div>
 
   <div class="popup-overlay" id="popup-overlay">
     <div class="popup-card">
@@ -479,9 +434,9 @@
   }
 
   const MOOD_META = {
-    tough: { label: 'Tough', color: '#ff9063' },
-    okay:  { label: 'Okay',  color: '#87ceeb' },
-    great: { label: 'Great', color: '#90ee90' }
+    tough: { label: 'Tough', color: '#F4C6A6' },
+    okay:  { label: 'Okay',  color: '#B8D8E8' },
+    great: { label: 'Great', color: '#B7C9B2' }
   };
 
   // ---------- State ----------
@@ -490,7 +445,6 @@
   let viewMonth = today.getMonth(); // 0-indexed
 
   const moodData = {};       // key: 'YYYY-M-D' -> 'tough' | 'okay' | 'great'
-  const savedSnapshots = []; // in-memory saved snapshots
   const STORAGE_KEY = 'moodCalendarData_v1';
 
   function loadMoodData() {
@@ -625,32 +579,6 @@
   document.getElementById('popup-overlay').addEventListener('click', (e) => {
     if (e.target.id === 'popup-overlay') closePopup();
   });
-
-  // ---------- Save action ----------
-  function saveData() {
-    const label = MONTH_NAMES[viewMonth] + ' ' + viewYear;
-    const entries = [];
-    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-    for (let d = 1; d <= daysInMonth; d++) {
-      const key = dateKey(viewYear, viewMonth, d);
-      entries.push({ date: key, mood: moodData[key] || null });
-    }
-
-    const loggedCount = entries.filter(e => e.mood).length;
-
-    savedSnapshots.push({
-      scope: 'month',
-      label: label,
-      savedAt: new Date().toISOString(),
-      entries: entries
-    });
-
-    const status = document.getElementById('save-status');
-    status.textContent = 'Saved ' + label + ' — ' + loggedCount + '/' + entries.length + ' days logged ✓';
-    status.classList.add('show');
-    clearTimeout(window.__saveStatusTimer);
-    window.__saveStatusTimer = setTimeout(() => status.classList.remove('show'), 3000);
-  }
 
   // ---------- Init ----------
   loadMoodData();

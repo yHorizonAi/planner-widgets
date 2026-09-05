@@ -514,7 +514,6 @@
     if (el) el.textContent = getMonthRange().label;
   }
 
-  let monthAlreadySaved = false;
   let saveConfirmTimeout = null;
 
   function defaultSaveHTML() {
@@ -523,17 +522,33 @@
       '</svg>Save this Month';
   }
 
-  function checkAlreadySavedThisMonth() {
+  // Bug fix (Sept 5, 2026), replacing the old monthAlreadySaved flag, which caused two bugs:
+  // (a) it fired the overwrite prompt even when stats hadn't actually changed, because it only
+  //     checked "was this ever saved," never "is this different from what's saved"; and
+  // (b) it never got reset after deleteEntry() removed the saved record, so the prompt kept
+  //     firing even when 0 months were actually saved. Checking live against mr_history every
+  //     time, instead of caching a boolean, fixes both — there's no stale state left to go wrong.
+  function getSavedEntryForCurrentMonth() {
     const { key } = getMonthRange();
     const history = JSON.parse(localStorage.getItem('mr_history') || '[]');
-    monthAlreadySaved = history.some(e => e.monthKey === key);
+    return history.find(e => e.monthKey === key) || null;
+  }
+
+  function statsMatchSavedEntry(entry) {
+    const habit = localStorage.getItem('mr_habit') || '—';
+    return entry.tasks === counts.tasks &&
+           entry.assignments === counts.assignments &&
+           entry.exams === counts.exams &&
+           entry.goals === counts.goals &&
+           entry.habit === habit;
   }
 
   function handleSaveClick() {
     const btn = document.querySelector('.save-btn');
     if (btn.dataset.confirming === 'true') return; // ignore body click while Yes/No is showing
 
-    if (monthAlreadySaved) {
+    const existing = getSavedEntryForCurrentMonth();
+    if (existing && !statsMatchSavedEntry(existing)) {
       showSaveConfirm();
     } else {
       performSave();
@@ -590,7 +605,6 @@
     localStorage.setItem('mr_history', JSON.stringify(history));
 
     hasUnsavedChanges = false;
-    monthAlreadySaved = true;
 
     const btn = document.querySelector('.save-btn');
     btn.dataset.confirming = 'false';
@@ -714,7 +728,6 @@
 
   // Restore saved state
   renderPeriodLabel();
-  checkAlreadySavedThisMonth();
   counts.tasks = parseInt(localStorage.getItem('mr_tasks') || 0);
   counts.assignments = parseInt(localStorage.getItem('mr_assignments') || 0);
   counts.exams = parseInt(localStorage.getItem('mr_exams') || 0);

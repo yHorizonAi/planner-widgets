@@ -708,6 +708,13 @@
     }
 
     applyPalette(settings.palette);
+
+    // Bug fix (Sept 5, 2026): the markup above always hardcodes "25:00" as a
+    // placeholder. Previously, nothing reliably overwrote it unless closeSettings()
+    // happened to also detect a duration change for the active mode. Redrawing the
+    // timer here, every time the shape is (re)rendered, guarantees it always reflects
+    // the real timeLeft — whether or not a duration was changed in the same session.
+    updateDisplay();
   }
 
   function updateProgressVisual() {
