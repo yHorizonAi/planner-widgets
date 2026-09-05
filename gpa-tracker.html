@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- saved from url=(0066)file:///C:/Users/Yassine/Desktop/new%20deployment/gpa-tracker.html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="en">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GPA Tracker &amp; Grade Calculator</title>
-<link href="./GPA Tracker &amp; Grade Calculator_files/css2" rel="stylesheet">
+<title>GPA Tracker & Grade Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,600;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;1,300&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -152,12 +152,12 @@
   .class-list {
     max-height: 140px;
     overflow-y: auto;
-    padding-right: 14px;
+    padding-right: 8px;
     margin-bottom: 8px;
   }
 
   .class-list {
-    scrollbar-width: thin;
+    scrollbar-width: auto;
     scrollbar-color: rgba(122, 92, 138, 0.55) rgba(196, 160, 200, 0.12);
     -webkit-overflow-scrolling: touch;
   }
@@ -286,42 +286,30 @@
   <div class="gpa-display-container">
     <svg class="gpa-svg" viewBox="0 0 100 60">
       <defs>
-        <lineargradient id="lavender-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="#ba9ec7"></stop>
-          <stop offset="100%" stop-color="#8ba3de"></stop>
-        </lineargradient>
+        <linearGradient id="lavender-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#ba9ec7" />
+          <stop offset="100%" stop-color="#8ba3de" />
+        </linearGradient>
       </defs>
-      <path class="arc-bg" d="M 15 50 A 35 35 0 0 1 85 50"></path>
-      <path class="arc-fill" id="gpa-arc" d="M 15 50 A 35 35 0 0 1 85 50" style="stroke-dashoffset: 123.75;"></path>
+      <path class="arc-bg" d="M 15 50 A 35 35 0 0 1 85 50" />
+      <path class="arc-fill" id="gpa-arc" d="M 15 50 A 35 35 0 0 1 85 50" />
     </svg>
     <div class="gpa-text-box">
-      <div class="gpa-number" id="gpa-val">3.50</div>
+      <div class="gpa-number" id="gpa-val">0.00</div>
       <div class="gpa-label">Current GPA</div>
     </div>
   </div>
 
-  <div class="encouragement" id="gpa-msg">Incredible focus! You are thriving ✦</div>
+  <div class="encouragement" id="gpa-msg">Add a class to start tracking!</div>
 
   <div class="divider"></div>
 
   <div class="section-label">
-    <span>▸ Classes &amp; Grades</span>
+    <span>▸ Classes & Grades</span>
     <button class="add-btn" onclick="addClassRow()">+ Add Class</button>
   </div>
 
-  <div class="class-list" id="class-container"><div class="class-row">
-        <input type="text" class="class-input" value="Class 1" placeholder="Class name..." onchange="updateName(1, this.value)">
-        <select class="class-select" onchange="updateGrade(1, this.value)">
-          <option value="A">A</option><option value="A-">A-</option><option value="B+">B+</option><option value="B" selected="">B</option><option value="B-">B-</option><option value="C+">C+</option><option value="C">C</option><option value="C-">C-</option><option value="D+">D+</option><option value="D">D</option><option value="F">F</option>
-        </select>
-        <button class="delete-btn" onclick="removeClassRow(1)" title="Delete class">✕</button>
-      </div><div class="class-row">
-        <input type="text" class="class-input" value="" placeholder="Class name..." onchange="updateName(2, this.value)">
-        <select class="class-select" onchange="updateGrade(2, this.value)">
-          <option value="A" selected="">A</option><option value="A-">A-</option><option value="B+">B+</option><option value="B">B</option><option value="B-">B-</option><option value="C+">C+</option><option value="C">C</option><option value="C-">C-</option><option value="D+">D+</option><option value="D">D</option><option value="F">F</option>
-        </select>
-        <button class="delete-btn" onclick="removeClassRow(2)" title="Delete class">✕</button>
-      </div></div>
+  <div class="class-list" id="class-container"></div>
 
   <div class="divider"></div>
   <button class="reset-btn" id="reset-btn" onclick="handleResetClick()">↺ Clear All Classes</button>
@@ -370,7 +358,7 @@
       const row = document.createElement('div');
       row.className = 'class-row';
       row.innerHTML = `
-        <input type="text" class="class-input" value="${c.name}" placeholder="Class name..." onchange="updateName(${c.id}, this.value)">
+        <input type="text" class="class-input" value="${c.name}" placeholder="Course name..." onchange="updateName(${c.id}, this.value)">
         <select class="class-select" onchange="updateGrade(${c.id}, this.value)">
           ${Object.keys(gradeScale).map(g => `<option value="${g}" ${c.grade === g ? 'selected' : ''}>${g}</option>`).join('')}
         </select>
@@ -477,5 +465,5 @@
 
   init();
 </script>
-
-</body></html>
+</body>
+</html>
